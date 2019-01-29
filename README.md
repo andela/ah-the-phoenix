@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/andela/ah-the-phoenix.svg?branch=ft-integrate-travis-badge-163388126)](https://travis-ci.com/andela/ah-the-phoenix)
+
 Authors Haven - A Social platform for the creative at heart.
 =======
 
