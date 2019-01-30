@@ -1,0 +1,20 @@
+language: python
+# show supported Python versions
+python:
+  - "3.6"
+# Install dependencies
+install:
+ - pip install -r requirements.txt
+services:
+ - postgresql
+# Run tests
+before_script:
+  - psql -c 'create database thephoenix;' -U postgres
+  - python manage.py makemigrations
+  - python manage.py migrate
+script: 
+ - coverage run --source=authors/apps manage.py test
+ - python -m coverage report -m
+ # Run coveralls
+after_success:
+ - coveralls
