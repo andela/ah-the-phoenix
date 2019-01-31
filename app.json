@@ -1,0 +1,37 @@
+{
+  "addons": [
+    "heroku-postgresql"
+  ],
+  "buildpacks": [
+
+  ],
+  "env": {
+    "DEBUG": {
+      "required": true
+    },
+    "DISABLE_COLLECTSTATIC": {
+      "required": true
+    },
+    "HOST": {
+      "required": true
+    },
+    "NAME": {
+      "required": true
+    },
+    "password": {
+      "required": true
+    },
+    "PORT": {
+      "required": true
+    },
+    "USER": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "name": "ah-the-phoenix",
+  "scripts": {
+  },
+  "stack": "heroku-18"
+}
