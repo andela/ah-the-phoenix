@@ -15,7 +15,11 @@ Including another URLconf
 from django.urls import include, path
 from django.contrib import admin
 
+from .swagger import schema_view
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('authors.apps.base.urls'))
+    path('', include('authors.apps.base.urls')),
+    path('api/v1/docs/', schema_view),
+    path('api/', include(('authors.apps.authentication.urls','authentication'), namespace='authentication'))
 ]
