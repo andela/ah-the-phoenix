@@ -1,6 +1,16 @@
 [![Build Status](https://travis-ci.com/andela/ah-the-phoenix.svg?branch=ft-integrate-travis-badge-163388126)](https://travis-ci.com/andela/ah-the-phoenix)
 [![Coverage Status](https://coveralls.io/repos/github/andela/ah-the-phoenix/badge.svg?branch=ch-add-postgres-db-163388127)](https://coveralls.io/github/andela/ah-the-phoenix?branch=ch-add-postgres-db-163388127)
 
+Heroku link
+===========
+https://ah-the-phoenix.herokuapp.com/
+
+Documentation link
+==================
+https://ah-the-phoenix.herokuapp.com/api/v1/docs/
+
+
+
 Authors Haven - A Social platform for the creative at heart.
 =======
 
