@@ -14,14 +14,13 @@ class TestRegistration(BaseTest):
         response = self.signup_a_user(self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['user_info']["email"], "jam@gmail.com")
+        self.assertIn("token", response.data)
 
     def test_registeration_no_username(self):
         """Test for user registration if the username field is left blank."""
         response = self.signup_a_user(self.user_lacks_username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["errors"]["username"],
-                         ["This field may not be blank."]
-                         )
+        self.assertNotIn("token", response.data)
 
     def test_registeration_no_email(self):
         """Test for user registration if the email field is left blank."""
@@ -30,6 +29,7 @@ class TestRegistration(BaseTest):
         self.assertEqual(response.data["errors"]["email"],
                          ["This field may not be blank."]
                          )
+        self.assertNotIn("token", response.data)
 
     def test_registeration_no_password(self):
         """Test for user registration if the password field is left blank."""
@@ -38,6 +38,7 @@ class TestRegistration(BaseTest):
         self.assertEqual(response.data["errors"]["password"],
                          ["This field may not be blank."]
                          )
+        self.assertNotIn("token", response.data)
 
     def test_registeration_invalid_email(self):
         """
@@ -49,6 +50,13 @@ class TestRegistration(BaseTest):
         self.assertEqual(response.data["errors"]["email"],
                          ["Enter a valid email address."]
                          )
+        self.assertNotIn("token", response.data)
+
+    def test_registeration_short_password(self):
+        """Test for user registration if a short password is given."""
+        response = self.signup_a_user(self.user_short_password)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("token", response.data)
 
     def test_registeration_duplicate_user_email(self):
         """Test for user registration if the email entered already exists."""
@@ -58,6 +66,7 @@ class TestRegistration(BaseTest):
                          status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_duplicate.data["errors"]["email"],
                          ["user with this email already exists."])
+        self.assertNotIn("token", response_duplicate.data)
 
     def test_registeration_duplicate_username(self):
         """
@@ -71,6 +80,7 @@ class TestRegistration(BaseTest):
                          status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_duplicate.data["errors"]["username"],
                          ["user with this username already exists."])
+        self.assertNotIn("token", response_duplicate.data)
 
     def test_registeration_for_a_super_user(self):
         """Test if a superuser can be successfully created."""
@@ -122,16 +132,17 @@ class TestRegistration(BaseTest):
             verification_url,
             HTTP_AUTHORIZATION=f'token {token}'
         )
+
     def test_registeration_for_a_super_user_no_password(self):
         """Test if superuser lacks password during registration"""
         with self.assertRaisesMessage(TypeError,
                                       'Superusers must have a password.'):
             User.objects.create_superuser(
-            'jey',
-            'jey@gmail.com',
-            None
+                'jey',
+                'jey@gmail.com',
+                None
             )
-    
+
     def test_invalid_password(self):
         """test if a password is valid"""
         response = self.signup_a_user(self.password_lacks_specialchar)
@@ -155,3 +166,13 @@ class TestRegistration(BaseTest):
                          ["username cannot be less than 2 characters"]
                          )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("token", response.data)
+
+    def test_update_user(self):
+        """Test for successful user registration."""
+        token = self.signup_a_user(self.user_data).data["user_info"]["token"]
+        response = self.client.put(self.user_url,
+                                   self.user_data,
+                                   HTTP_AUTHORIZATION=f'token {token}',
+                                   format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

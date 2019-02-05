@@ -20,6 +20,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, username, email, password=None):
         """Create and return a `User` with an email, username and password."""
+
         if username is None:
             raise TypeError('Users must have a username.')
 
@@ -105,6 +106,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
     @property
+    def token(self):
+        """
+        Allows us to get the token by calling `user.token` instead of
+        `user.generate_jwt_token().`
+        """
+        return self.generate_jwt_token()
+
     def get_full_name(self):
       """
       This method is required by Django for things like handling emails.
@@ -120,5 +128,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         the user's real name, we return their username instead.
         """
         return self.username
+
+    def generate_jwt_token(self):
+        """ Generates a token that expires in 24hrs """
+        time = datetime.now() + timedelta(hours=24)
+        token = jwt.encode({
+            "eamil": self.email,
+            "username": self.username,
+            "exp": int(time.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+        
+        return token.decode('utf-8')
 
 
