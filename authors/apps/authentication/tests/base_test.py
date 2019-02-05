@@ -159,6 +159,7 @@ class BaseTest(APITestCase):
         }
 
 
+<<<<<<< HEAD
         self.email_forgot_password = {
                             "email": "wearethephoenix34@gmail.com"
         }
@@ -172,6 +173,8 @@ class BaseTest(APITestCase):
             "confirm_password":"jamesSavali8@"
         }
 
+=======
+>>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,

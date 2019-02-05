@@ -52,12 +52,15 @@ class TestRegistration(BaseTest):
                          )
         self.assertNotIn("token", response.data)
 
+<<<<<<< HEAD
     def test_registeration_short_password(self):
         """Test for user registration if a short password is given."""
         response = self.signup_a_user(self.user_short_password)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotIn("token", response.data)
 
+=======
+>>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def test_registeration_duplicate_user_email(self):
         """Test for user registration if the email entered already exists."""
         self.signup_a_user(self.user_data)
@@ -132,23 +135,54 @@ class TestRegistration(BaseTest):
             verification_url,
             HTTP_AUTHORIZATION=f'token {token}'
         )
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def test_registeration_for_a_super_user_no_password(self):
         """Test if superuser lacks password during registration"""
         with self.assertRaisesMessage(TypeError,
                                       'Superusers must have a password.'):
             User.objects.create_superuser(
+<<<<<<< HEAD
                 'jey',
                 'jey@gmail.com',
                 None
             )
 
+=======
+            'jey',
+            'jey@gmail.com',
+            None
+            )
+    
+>>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def test_invalid_password(self):
         """test if a password is valid"""
         response = self.signup_a_user(self.password_lacks_specialchar)
         self.assertEqual(response.data['errors']['password'],
                          ["please consider a password that has a number, an uppercase letter, lowercase letter and a special character"]
                          )
+<<<<<<< HEAD
+=======
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_username_nodigits(self):
+        """test if username is all digits"""
+        response = self.signup_a_user(self.username_nodigits)
+        self.assertEqual(response.data['errors']['username'],
+                         ["username is invalid"]
+                         )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_short_username(self):
+        '''test if username is too short'''
+        response = self.signup_a_user(self.short_username)
+        self.assertEqual(response.data['errors']['username'],
+                         ["username cannot be less than 2 characters"]
+                         )
+>>>>>>> feat(authors haven):Display descriptive error messages when signing up
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_username_nodigits(self):

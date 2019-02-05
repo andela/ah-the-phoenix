@@ -44,8 +44,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
     # Ensure passwords are at least 8 characters long, no longer than 128
     # characters, and can not be read by the client.
     password = serializers.RegexField(
-        regex=("^(?=.{8,}$)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*"), 
-        max_length=50,
+        regex=("^(?=.{8,}$)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*"),
+        max_length=128,
         min_length=8,
         write_only=True,
         required=True,
@@ -56,20 +56,37 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'invalid': 'please consider a password that has a number, an uppercase letter, lowercase letter and a special character',
         }
     )
+    email = serializers.EmailField(
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message='user with this email already exists.'
+            )
+        ],
+        error_messages={
+            'required': 'Ensure the email is inserted',
+            'invalid': 'Enter a valid email address.'
+        }
+    )
     username = serializers.RegexField(
         regex=("^[A-Za-z]*$"),
         max_length=128,
         min_length=2,
         required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message='user with this username already exists.'
+            )
+        ],
         error_messages={
             'required': 'please insert your username',
             'min_length': 'username cannot be less than 2 characters',
             'max_length': 'username cannot be greater than 128 characters',
-            'invalid': 'username cannot be all numerical',
+            'invalid': 'username is invalid',
         }
     )
-    
-
 
     # The client should not be able to send a token along with a registration
     # request. Making `token` read-only handles that for us.
