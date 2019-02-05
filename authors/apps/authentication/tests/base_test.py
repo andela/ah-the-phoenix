@@ -117,6 +117,41 @@ class BaseTest(APITestCase):
             }
         }
 
+        self.username_nodigits = {
+            "user": {
+                "username": "23798731",
+                "email": "james@gmail.com",
+                "password": "jamesSavali1#"
+                            
+            }
+        }
+
+        self.short_username = {
+            "user": {
+                "username": "k",
+                "email": "james@gmail.com",
+                "password": "jamesSavali1#"
+
+            }
+        }
+
+        self.password_lacks_specialchar = {
+            "user": {
+                "username": "kevinkibet",
+                            "email": "kevin@andela.com",
+                            "password": "kevinrules"
+            }
+        }
+
+        self.non_superuser ={
+            "user": {
+                "username": "winston",
+                "email": "winston@andela.com",
+                "password": "Winston#67"
+            }
+        }
+
+
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
