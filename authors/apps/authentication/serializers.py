@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+import re
 
 from rest_framework import serializers
 
@@ -10,11 +11,33 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     # Ensure passwords are at least 8 characters long, no longer than 128
     # characters, and can not be read by the client.
-    password = serializers.CharField(
-        max_length=128,
+    password = serializers.RegexField(
+        regex=("^(?=.{8,}$)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*"), 
+        max_length=50,
         min_length=8,
-        write_only=True
+        write_only=True,
+        required=True,
+        error_messages={
+            'required': 'please ensure you have inserted a password',
+            'min_length': 'password cannot be less than 8 characters',
+            'max-length': 'password cannot be greater than 50 characters',
+            'invalid': 'please consider a password that has a number, an uppercase letter, lowercase letter and a special character',
+        }
     )
+    username = serializers.RegexField(
+        regex=("^[A-Za-z]*$"),
+        max_length=128,
+        min_length=2,
+        required=True,
+        error_messages={
+            'required': 'please insert your username',
+            'min_length': 'username cannot be less than 2 characters',
+            'max_length': 'username cannot be greater than 128 characters',
+            'invalid': 'username cannot be all numerical',
+        }
+    )
+    
+
 
     # The client should not be able to send a token along with a registration
     # request. Making `token` read-only handles that for us.
@@ -28,6 +51,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
         return User.objects.create_user(**validated_data)
+
+    # def validate_username(self, data):
+    #     print(data)
+    #     username = validate_data["username"]
+    #     if not re.match("^[A-Za-z]*$", username):
+    #         raise serializers.ValidationError(
+    #             'An username cannot be all numerical.'
+    #         )
 
 
 class LoginSerializer(serializers.Serializer):
