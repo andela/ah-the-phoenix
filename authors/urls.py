@@ -21,5 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('authors.apps.base.urls')),
     path('api/v1/docs/', schema_view),
-    path('api/', include(('authors.apps.authentication.urls','authentication'), namespace='authentication'))
+    path('api/v1/', include(('authors.apps.authentication.urls',
+                             'authentication'), namespace='authentication'))
 ]

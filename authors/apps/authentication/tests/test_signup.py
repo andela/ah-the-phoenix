@@ -1,4 +1,5 @@
 from rest_framework import status
+from django.urls import reverse
 
 from authors.apps.authentication.tests.base_test import BaseTest
 from authors.apps.authentication.models import User
@@ -12,7 +13,7 @@ class TestRegistration(BaseTest):
         """Test for successful user registration."""
         response = self.signup_a_user(self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["email"], "jam@gmail.com")
+        self.assertEqual(response.data['user_info']["email"], "jam@gmail.com")
 
     def test_registeration_no_username(self):
         """Test for user registration if the username field is left blank."""
@@ -89,3 +90,44 @@ class TestRegistration(BaseTest):
         self.assertEqual(admin_user.is_active, True)
         self.assertEqual(admin_user.is_staff, True)
         self.assertEqual(admin_user.is_superuser, True)
+
+    def test_successful_email_verification(self):
+        """Test if user email can be successfull verified"""
+
+        token = self.signup_a_user(self.user_data).data['token']
+        verification_url = reverse(
+            'authentication:verify_email', kwargs={'token': token})
+
+        response = self.client.get(
+            verification_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_already_validated_email(self):
+        """Test if user email can be successfull verified"""
+        token = self.signup_a_user(self.user_data).data['token']
+        verification_url = reverse(
+            'authentication:verify_email', kwargs={'token': token})
+
+        self.client.get(
+            verification_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        response_two = self.client.get(
+            verification_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        self.assertEqual(response_two.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_verification_with_invalid_token(self):
+        """Test if user email can be successfull verified"""
+        token = self.signup_a_user(self.user_data).data['token']
+        verification_url = reverse('authentication:verify_email', kwargs={
+                                   'token': 'weucnuwencusn'})
+
+        response = self.client.get(
+            verification_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

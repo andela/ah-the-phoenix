@@ -3,11 +3,19 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import jwt
+import os
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from datetime import datetime, timedelta
 
 from .renderers import UserJSONRenderer
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer
 )
+from .models import User
 
 
 class RegistrationAPIView(APIView):
@@ -24,9 +32,72 @@ class RegistrationAPIView(APIView):
         # your own work later on. Get familiar with it.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        email = serializer.validated_data.get('email', None)
+        username = serializer.validated_data.get('username')
+
+        payload = {
+            'email': email,
+            'username': username,
+            'exp': datetime.utcnow()
+            + timedelta(minutes=60)
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY,
+                           algorithm='HS256').decode('utf-8')
+        sender = os.getenv('EMAIL_HOST_USER')
+        site_link = get_current_site(request)
+        verification_link = 'http://' + site_link.domain + \
+            f'/api/v1/users/verify/{token}'
+
+        email_subject = "Author's Haven Email verification"
+        message = render_to_string('verification_template.html', {
+            'title': email_subject,
+            'username': username,
+            'verification_link': verification_link
+        })
+
+        send_mail(email_subject, '', sender, [email, ], html_message=message)
+
+        serializer.save()
+        message = {
+            "message": "User successfully created. Check email for verification link",
+            "user_info": serializer.data,
+            "token": token
+        }
+
+        return Response(message, status=status.HTTP_201_CREATED)
+
+
+class VerifyAPIView(APIView):
+
+    serializer_class = UserSerializer
+    def get(self, request, token):
+
+        try:
+            email = jwt.decode(token, settings.SECRET_KEY)['email']
+            user = User.objects.get(email=email)
+            username = jwt.decode(token, settings.SECRET_KEY)['username']
+
+            if user.is_verified:
+                site_link = get_current_site(request)
+                message = {
+                    'message': 'Account already activated. Click on the link to continue',
+                    'login link': 'http://' + site_link.domain + '/api/v1/users/login'
+                }
+                return Response(message, status=status.HTTP_403_FORBIDDEN)
+            user.is_verified = True
+            user.save()
+
+            message = {
+                'message': f'Welcome {username}, Your email has been successfully activated'
+            }
+            return Response(message, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            message = {
+                'error': 'Verification email is not valid. Try again'
+            }
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPIView(APIView):
@@ -72,4 +143,3 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-

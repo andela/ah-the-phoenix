@@ -75,6 +75,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # falsed.
     is_staff = models.BooleanField(default=False)
 
+    # The 'is_verified' flag is used to determine whether a users account is verified
+    #By default the user it is False until their account email is verfied
+    is_verified = models.BooleanField(default=False)
+
     # A timestamp representing when this object was created.
     created_at = models.DateTimeField(auto_now_add=True)
 
