@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{title}}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css?family=PT+Sans');
+  .main{
+    margin: 2%;
+    border: solid 1px silver;
+    box-shadow: 1px 1px 1px black;
+    width: 90%;
+    margin: auto;
+    font-size: 20px;
+    font-family: 'PT Sans', sans-serif;
+    border-radius: 5px;
+  }
+  .username{
+    color: #fff;
+    background: teal;
+    margin: 0;
+    padding: 2%;
+  }
+  .mail-body{
+    padding: 1%;
+  }
+  .link{
+    padding: 1%;
+    border: solid 1px teal;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+  <div class="main">
+    <h4 class="username">Hi {{username}},</h4>
+    <div class="mail-body">
+    <p>Author's Haven by The Phoenix</p>
+    <p>Thanks you for using Author's Heaven by The Phoenix, <br>Click the link below
+     to reset your password<br><br>
+    <a href="{{verification_link}}" class="link">Click Here</a><br><br>
+    Regards. The Phoenix</p>
+    </div>
+  </div>
+</body>
+</html>

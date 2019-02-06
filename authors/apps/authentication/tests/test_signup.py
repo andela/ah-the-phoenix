@@ -13,7 +13,7 @@ class TestRegistration(BaseTest):
         """Test for successful user registration."""
         response = self.signup_a_user(self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['user_info']["email"], "jam@gmail.com")
+        self.assertEqual(response.data['user_info']["email"], "wearethephoenix34@gmail.com")
         self.assertIn("token", response.data)
 
     def test_registeration_no_username(self):

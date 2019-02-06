@@ -1,5 +1,10 @@
+import jwt
+from rest_framework.views import status
+from datetime import datetime, timedelta
 from django.urls import reverse
+from django.conf import settings
 from rest_framework.test import APITestCase
+
 
 
 class BaseTest(APITestCase):
@@ -11,10 +16,11 @@ class BaseTest(APITestCase):
         self.login_url = reverse('authentication:user_login')
         self.signup_url = reverse('authentication:user_signup')
         self.user_url = reverse('authentication:user_url')
+        self.password_reset_url = reverse('authentication:reset_password')
         self.user_data = {
             "user": {
                 "username": "James",
-                            "email": "jam@gmail.com",
+                            "email": "wearethephoenix34@gmail.com",
                             "password": "jamesSavali1"
             }
         }
@@ -30,7 +36,7 @@ class BaseTest(APITestCase):
         self.user_data_duplicate_email = {
             "user": {
                 "username": "James2",
-                            "email": "jam@gmail.com",
+                            "email": "wearethephoenix34@gmail.com",
                             "password": "jamesSavali1"
             }
         }
@@ -38,7 +44,7 @@ class BaseTest(APITestCase):
         self.user_lacks_username = {
             "user": {
                 "username": "",
-                            "email": "jam@gmail.com",
+                            "email": "wearethephoenix34@gmail.com",
                             "password": "jamesSavali1"
             }
         }
@@ -54,7 +60,7 @@ class BaseTest(APITestCase):
         self.user_lacks_password = {
             "user": {
                 "username": "james2",
-                            "email": "jam@gmail.com",
+                            "email": "wearethephoenix34@gmail.com",
                             "password": ""
             }
         }
@@ -70,7 +76,7 @@ class BaseTest(APITestCase):
         self.user_short_password = {
             "user": {
                 "username": "james2",
-                            "email": "jam@gmail.com",
+                            "email": "wearethephoenix34@gmail.com",
                             "password": "kenya"
             }
         }
@@ -78,14 +84,14 @@ class BaseTest(APITestCase):
         self.user_wrong_password = {
             "user": {
                 "username": "james2",
-                            "email": "jam@gmail.com",
+                            "email": "wearethephoenix34@gmail.com",
                             "password": "111"
             }
         }
 
         self.user_login_data = {
             "user": {
-                "email": "jam@gmail.com",
+                "email": "wearethephoenix34@gmail.com",
                 "password": "jamesSavali1"
             }
         }
@@ -99,7 +105,7 @@ class BaseTest(APITestCase):
 
         self.user_wrong_password_login = {
             "user": {
-                "email": "jam@gmail.com",
+                "email": "wearethephoenix34@gmail.com",
                 "password": "jamesSavali2"
             }
         }
@@ -113,7 +119,7 @@ class BaseTest(APITestCase):
 
         self.user_blank_password_login = {
             "user": {
-                "email": "jam@gmail.com",
+                "email": "wearethephoenix34@gmail.com",
                 "password": ""
             }
         }
@@ -153,6 +159,19 @@ class BaseTest(APITestCase):
         }
 
 
+        self.email_forgot_password = {
+                            "email": "wearethephoenix34@gmail.com"
+        }
+
+        self.empty_email_field = {
+            "email":""
+        }
+
+        self.passwords={
+            "password":"jamesSavali8@",
+            "confirm_password":"jamesSavali8@"
+        }
+
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
@@ -164,3 +183,21 @@ class BaseTest(APITestCase):
         return self.client.post(self.login_url,
                                 user_details,
                                 format='json')
+
+    def send_reset_password_email(self, user_details):
+        """Invoke the server by sending a post request to the password reset url."""
+        return self.client.post(self.password_reset_url,
+                                user_details,
+                                format='json')
+
+    @staticmethod
+    def create_url():
+        """Create a url with the token, to redirect the user to password update."""
+        token = jwt.encode({"email": "wearethephoenix34@gmail.com",
+                            "iat": datetime.now(),
+                            "exp": datetime.utcnow() + timedelta(minutes=5)},
+                            settings.SECRET_KEY,
+                            algorithm='HS256').decode()
+        reset_url = reverse("authentication:update_password",
+             kwargs={"token": token})
+        return reset_url

@@ -12,7 +12,7 @@ class TestLogin(BaseTest):
         self.signup_a_user(self.user_data)
         response = self.login_a_user(self.user_login_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["email"], "jam@gmail.com")
+        self.assertEqual(response.data["email"], "wearethephoenix34@gmail.com")
         self.assertIn("token", response.data)
 
     def test_wrong_email_login(self):
