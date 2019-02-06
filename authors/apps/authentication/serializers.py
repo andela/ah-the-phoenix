@@ -1,6 +1,9 @@
 from django.contrib.auth import authenticate
+import re
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+
 
 from .models import User
 
@@ -10,10 +13,49 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     # Ensure passwords are at least 8 characters long, no longer than 128
     # characters, and can not be read by the client.
-    password = serializers.CharField(
+    password = serializers.RegexField(
+        regex=("^(?=.{8,}$)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*"),
         max_length=128,
         min_length=8,
-        write_only=True
+        write_only=True,
+        required=True,
+        error_messages={
+            'required': 'please ensure you have inserted a password',
+            'min_length': 'password cannot be less than 8 characters',
+            'max-length': 'password cannot be greater than 50 characters',
+            'invalid': 'please consider a password that has a number, an uppercase letter, lowercase letter and a special character',
+        }
+    )
+    email = serializers.EmailField(
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message='user with this email already exists.'
+            )
+        ],
+        error_messages={
+            'required': 'Ensure the email is inserted',
+            'invalid': 'Enter a valid email address.'
+        }
+    )
+    username = serializers.RegexField(
+        regex=("^[A-Za-z]*$"),
+        max_length=128,
+        min_length=2,
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message='user with this username already exists.'
+            )
+        ],
+        error_messages={
+            'required': 'please insert your username',
+            'min_length': 'username cannot be less than 2 characters',
+            'max_length': 'username cannot be greater than 128 characters',
+            'invalid': 'username is invalid',
+        }
     )
 
     # The client should not be able to send a token along with a registration
@@ -34,7 +76,6 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=255)
     username = serializers.CharField(max_length=255, read_only=True)
     password = serializers.CharField(max_length=128, write_only=True)
-
 
     def validate(self, data):
         # The `validate` method is where we make sure that the current
@@ -94,7 +135,7 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Handles serialization and deserialization of User objects."""
 
-    # Passwords must be at least 8 characters, but no more than 128 
+    # Passwords must be at least 8 characters, but no more than 128
     # characters. These values are the default provided by Django. We could
     # change them, but that would create extra work while introducing no real
     # benefit, so let's just stick with the defaults.
@@ -112,10 +153,9 @@ class UserSerializer(serializers.ModelSerializer):
         # specifying the field with `read_only=True` like we did for password
         # above. The reason we want to use `read_only_fields` here is because
         # we don't need to specify anything else about the field. For the
-        # password field, we needed to specify the `min_length` and 
+        # password field, we needed to specify the `min_length` and
         # `max_length` properties too, but that isn't the case for the token
         # field.
-
 
     def update(self, instance, validated_data):
         """Performs an update on a User."""
