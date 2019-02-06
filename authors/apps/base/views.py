@@ -1,7 +1,16 @@
-from django.http import HttpResponse
+from rest_framework import status
+from django.http import JsonResponse
 
 # Create your views here.
 
 def index(self):
     '''Create a default home message'''
-    return HttpResponse('Welcome to The Phoenix Homepage')
+    
+    response_message = {
+        "status":"success", 
+        "data": 
+            {"message": "Welcome to Authors Haven's  API.",
+            "Owner": "The Phoenix" }
+        }
+    return JsonResponse(response_message, status=status.HTTP_200_OK)
+    
