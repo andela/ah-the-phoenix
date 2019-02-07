@@ -8,12 +8,8 @@ from rest_framework.validators import UniqueValidator
 from .models import User
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
-    """Serializers registration requests and creates a new user."""
-
-    # Ensure passwords are at least 8 characters long, no longer than 128
-    # characters, and can not be read by the client.
-    password = serializers.RegexField(
+def password_validator():
+    return serializers.RegexField(
         regex=("^(?=.{8,}$)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*"),
         max_length=128,
         min_length=8,
@@ -26,7 +22,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'invalid': 'please consider a password that has a number, an uppercase letter, lowercase letter and a special character',
         }
     )
-    email = serializers.EmailField(
+
+def email_validator():
+    return serializers.EmailField(
         required=True,
         validators=[
             UniqueValidator(
@@ -39,6 +37,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'invalid': 'Enter a valid email address.'
         }
     )
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    """Serializers registration requests and creates a new user."""
+
+    # Ensure passwords are at least 8 characters long, no longer than 128
+    # characters, and can not be read by the client.
+    
+    email = email_validator()
     username = serializers.RegexField(
         regex=("^[A-Za-z]*$"),
         max_length=128,
@@ -57,6 +63,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'invalid': 'username is invalid',
         }
     )
+    password = password_validator()
 
     # The client should not be able to send a token along with a registration
     # request. Making `token` read-only handles that for us.
@@ -70,6 +77,35 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
         return User.objects.create_user(**validated_data)
+
+class EmailSerializer(serializers.ModelSerializer):
+
+    """Ensure email is valid and it is inserted"""
+
+    class Meta:
+        model = User
+         # List all of the fields that could possibly be included in a request
+        # or response, including fields specified explicitly above.
+        fields = ['email']
+    
+
+class PasswordResetSerializer(EmailSerializer, serializers.ModelSerializer):
+
+    """Serialize for the password update functionality"""
+    
+    password = password_validator()
+    confirm_password = serializers.CharField(
+        max_length=128,
+        min_length=8,
+        write_only=True,
+        required=False
+    )
+
+    class Meta:
+        model = User
+         # List all of the fields that could possibly be included in a request
+        # or response, including fields specified explicitly above.
+        fields = ['password', 'confirm_password']
 
 
 class LoginSerializer(serializers.Serializer):
