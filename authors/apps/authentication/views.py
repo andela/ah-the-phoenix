@@ -93,7 +93,7 @@ class VerifyAPIView(APIView):
             }
             return Response(message, status=status.HTTP_200_OK)
 
-        except Exception as e:
+        except Exception:
             message = {
                 'error': 'Verification email is not valid. Try again'
             }

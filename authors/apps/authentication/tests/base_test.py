@@ -10,6 +10,7 @@ class BaseTest(APITestCase):
         """Define all variables required by other test cases."""
         self.login_url = reverse('authentication:user_login')
         self.signup_url = reverse('authentication:user_signup')
+        self.user_url = reverse('authentication:user_url')
         self.user_data = {
             "user": {
                 "username": "James",

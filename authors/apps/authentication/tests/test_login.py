@@ -13,6 +13,7 @@ class TestLogin(BaseTest):
         response = self.login_a_user(self.user_login_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["email"], "jam@gmail.com")
+        self.assertIn("token", response.data)
 
     def test_wrong_email_login(self):
         """Test for a login with a wrong email."""
@@ -22,6 +23,7 @@ class TestLogin(BaseTest):
         self.assertEqual(response.data["errors"]["error"],
                          ["A user with this email and password was not found."]
                          )
+        self.assertNotIn("token", response.data)
 
     def test_wrong_password_login(self):
         """Test for a login with a wrong password."""
@@ -31,6 +33,7 @@ class TestLogin(BaseTest):
         self.assertEqual(response.data["errors"]["error"],
                          ["A user with this email and password was not found."]
                          )
+        self.assertNotIn("token", response.data)
 
     def test_blank_email_login(self):
         """Test for a login with a blank email."""
@@ -39,6 +42,7 @@ class TestLogin(BaseTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["errors"]
                          ["email"], ["This field may not be blank."])
+        self.assertNotIn("token", response.data)
 
     def test_blank_password_login(self):
         """Test for a login with a blank password."""
@@ -49,3 +53,4 @@ class TestLogin(BaseTest):
             response.data["errors"]["password"], [
                 "This field may not be blank."]
         )
+        self.assertNotIn("token", response.data)
