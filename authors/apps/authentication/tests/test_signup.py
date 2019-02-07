@@ -13,7 +13,8 @@ class TestRegistration(BaseTest):
         """Test for successful user registration."""
         response = self.signup_a_user(self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['user_info']["email"], "wearethephoenix34@gmail.com")
+        self.assertEqual(response.data['user_info']
+                         ["email"], "wearethephoenix34@gmail.com")
         self.assertIn("token", response.data)
 
     def test_registeration_no_username(self):
@@ -52,15 +53,12 @@ class TestRegistration(BaseTest):
                          )
         self.assertNotIn("token", response.data)
 
-<<<<<<< HEAD
     def test_registeration_short_password(self):
         """Test for user registration if a short password is given."""
         response = self.signup_a_user(self.user_short_password)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotIn("token", response.data)
 
-=======
->>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def test_registeration_duplicate_user_email(self):
         """Test for user registration if the email entered already exists."""
         self.signup_a_user(self.user_data)
@@ -88,10 +86,10 @@ class TestRegistration(BaseTest):
     def test_registeration_for_a_super_user(self):
         """Test if a superuser can be successfully created."""
         admin_user = User.objects.create_superuser(
-            'jey',
-            'jey@gmail.com',
-            'jemo'
-        )
+                        'jey',
+                        'jey@gmail.com',
+                        'jemo'
+                    )
         self.assertEqual(admin_user.is_active, True)
         self.assertEqual(admin_user.is_staff, True)
         self.assertEqual(admin_user.is_superuser, True)
@@ -135,37 +133,23 @@ class TestRegistration(BaseTest):
             verification_url,
             HTTP_AUTHORIZATION=f'token {token}'
         )
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def test_registeration_for_a_super_user_no_password(self):
         """Test if superuser lacks password during registration"""
         with self.assertRaisesMessage(TypeError,
                                       'Superusers must have a password.'):
             User.objects.create_superuser(
-<<<<<<< HEAD
                 'jey',
                 'jey@gmail.com',
                 None
             )
 
-=======
-            'jey',
-            'jey@gmail.com',
-            None
-            )
-    
->>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def test_invalid_password(self):
         """test if a password is valid"""
         response = self.signup_a_user(self.password_lacks_specialchar)
         self.assertEqual(response.data['errors']['password'],
                          ["please consider a password that has a number, an uppercase letter, lowercase letter and a special character"]
                          )
-<<<<<<< HEAD
-=======
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_username_nodigits(self):
@@ -182,7 +166,6 @@ class TestRegistration(BaseTest):
         self.assertEqual(response.data['errors']['username'],
                          ["username cannot be less than 2 characters"]
                          )
->>>>>>> feat(authors haven):Display descriptive error messages when signing up
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_username_nodigits(self):

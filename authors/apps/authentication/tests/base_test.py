@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from django.urls import reverse
 from django.conf import settings
 from rest_framework.test import APITestCase
-
+import os
 
 
 class BaseTest(APITestCase):
@@ -129,7 +129,7 @@ class BaseTest(APITestCase):
                 "username": "23798731",
                 "email": "james@gmail.com",
                 "password": "jamesSavali1#"
-                            
+
             }
         }
 
@@ -150,7 +150,7 @@ class BaseTest(APITestCase):
             }
         }
 
-        self.non_superuser ={
+        self.non_superuser = {
             "user": {
                 "username": "winston",
                 "email": "winston@andela.com",
@@ -158,23 +158,48 @@ class BaseTest(APITestCase):
             }
         }
 
+        self.social_authentication_url = reverse('authentication:social')
 
-<<<<<<< HEAD
+        self.invalid_token = 'invalidtokendonotallowdbkjs'
+
+        self.oauth2_token = os.getenv("OAUTH2_ACCESS_TOKEN")
+
+        self.invalid_provider_data = {
+            "client_provider": "notprovider",
+            "access_token": self.oauth2_token
+        }
+
+        self.invalid_token = {
+            "client_provider": "facebook",
+            "access_token": self.invalid_token
+        }
+
+        self.oauth2_data = {
+                    "client_provider": "facebook",
+                    "access_token": self.oauth2_token
+                }
+
+        self.empty_token = {
+            "client_provider": "facebook"
+        }
+
+        self.empty_provider_data = {
+            "access_token": self.oauth2_token
+        }
+
         self.email_forgot_password = {
-                            "email": "wearethephoenix34@gmail.com"
+            "email": "wearethephoenix34@gmail.com"
         }
 
         self.empty_email_field = {
-            "email":""
+            "email": ""
         }
 
-        self.passwords={
-            "password":"jamesSavali8@",
-            "confirm_password":"jamesSavali8@"
+        self.passwords = {
+            "password": "jamesSavali8@",
+            "confirm_password": "jamesSavali8@"
         }
 
-=======
->>>>>>> feat(authors haven):Display descriptive error messages when signing up
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
@@ -199,8 +224,8 @@ class BaseTest(APITestCase):
         token = jwt.encode({"email": "wearethephoenix34@gmail.com",
                             "iat": datetime.now(),
                             "exp": datetime.utcnow() + timedelta(minutes=5)},
-                            settings.SECRET_KEY,
-                            algorithm='HS256').decode()
+                           settings.SECRET_KEY,
+                           algorithm='HS256').decode()
         reset_url = reverse("authentication:update_password",
-             kwargs={"token": token})
+                            kwargs={"token": token})
         return reset_url

@@ -243,3 +243,13 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class SocialAuthenticationSerializer(serializers.Serializer):
+    """Takes in access token, provider, and access_token_secret"""
+
+    client_provider = serializers.CharField(max_length=255, required=True)
+    access_token = serializers.CharField(
+        max_length=4096, trim_whitespace=True, required=True)
+    access_token_secret = serializers.CharField(
+        max_length=4096, trim_whitespace=True, required=False)
