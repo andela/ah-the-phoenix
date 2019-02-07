@@ -172,18 +172,17 @@ class PasswordResetView(CreateAPIView):
 
         token = jwt.encode({"email": recipient},
                            settings.SECRET_KEY, algorithm='HS256')
-
+        
         is_user_exising = User.objects.filter(email=recipient).exists()
         if is_user_exising:
             result = MailSender.send_email_message(recipient, token, request)
             return Response(result, status=status.HTTP_200_OK)
-
+        
         else:
             result = {
                 'message': 'A user with the given email was not found'
             }
             return Response(result, status=status.HTTP_404_NOT_FOUND)
-
 
 class PasswordUpdateView(UpdateAPIView):
     permission_classes = (AllowAny,)

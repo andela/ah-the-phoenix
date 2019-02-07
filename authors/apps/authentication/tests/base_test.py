@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 from ..models import User
 
 
+
 class BaseTest(APITestCase):
 
     """Initiate all the data required in running other tests."""
@@ -25,6 +26,7 @@ class BaseTest(APITestCase):
                 "username": "PaulGichuki"
             }
         }
+        self.profile_url = reverse('profiles:get_profiles')
         self.user_data = {
             "user": {
                 "username": "James",
@@ -251,6 +253,30 @@ class BaseTest(APITestCase):
                 "email": "kimm@gmail.com",
                 "username": "kim",
                 "password": "Kim123@#"
+        self.email_forgot_password = {
+                            "email": "wearethephoenix34@gmail.com"
+        }
+
+        self.empty_email_field = {
+            "email":""
+        }
+
+        self.passwords={
+            "password":"jamesSavali8@",
+            "confirm_password":"jamesSavali8@"
+        }
+
+        self.profile = {
+            'profile': {
+                "bio": "i am an introvert",
+                "image": "https://workhound.com/wp-content/uploads/2017/05/placeholder-profile-pic.png"
+            }
+        }
+
+        self.new_profile = {
+            'profile': {
+                "bio": "i am an extrovert",
+                "image": "https://workhound.com"
             }
         }
 
@@ -294,10 +320,10 @@ class BaseTest(APITestCase):
         token = jwt.encode({"email": "wearethephoenix34@gmail.com",
                             "iat": datetime.now(),
                             "exp": datetime.utcnow() + timedelta(minutes=5)},
-                           settings.SECRET_KEY,
-                           algorithm='HS256').decode()
+                            settings.SECRET_KEY,
+                            algorithm='HS256').decode()
         reset_url = reverse("authentication:update_password",
-                            kwargs={"token": token})
+             kwargs={"token": token})
         return reset_url
 
     def signup_user(self):
@@ -349,3 +375,15 @@ class BaseTest(APITestCase):
             HTTP_AUTHORIZATION=f'token {token}'
         )
         return response
+    def get_single_profile_url(self):
+        """Return a user's profile url"""
+        url = self.profile_url +  f"{self.user_data['user']['username']}" + "/"
+        return url
+    
+    def verify_user(self, uri):
+        """Signup, login and get a user's profile"""
+        self.signup_a_user(self.user_data)
+        user = self.login_a_user(self.user_login_data)
+        token = user.data["token"]
+        return self.client.get(uri,
+                                    HTTP_AUTHORIZATION=f'token {token}')
