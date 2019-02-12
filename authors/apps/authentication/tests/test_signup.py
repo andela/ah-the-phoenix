@@ -13,7 +13,8 @@ class TestRegistration(BaseTest):
         """Test for successful user registration."""
         response = self.signup_a_user(self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['user_info']["email"], "wearethephoenix34@gmail.com")
+        self.assertEqual(response.data['user_info']
+                         ["email"], "wearethephoenix34@gmail.com")
         self.assertIn("token", response.data)
 
     def test_registeration_no_username(self):
@@ -85,10 +86,10 @@ class TestRegistration(BaseTest):
     def test_registeration_for_a_super_user(self):
         """Test if a superuser can be successfully created."""
         admin_user = User.objects.create_superuser(
-            'jey',
-            'jey@gmail.com',
-            'jemo'
-        )
+                        'jey',
+                        'jey@gmail.com',
+                        'jemo'
+                    )
         self.assertEqual(admin_user.is_active, True)
         self.assertEqual(admin_user.is_staff, True)
         self.assertEqual(admin_user.is_superuser, True)
@@ -148,6 +149,22 @@ class TestRegistration(BaseTest):
         response = self.signup_a_user(self.password_lacks_specialchar)
         self.assertEqual(response.data['errors']['password'],
                          ["please consider a password that has a number, an uppercase letter, lowercase letter and a special character"]
+                         )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_username_nodigits(self):
+        """test if username is all digits"""
+        response = self.signup_a_user(self.username_nodigits)
+        self.assertEqual(response.data['errors']['username'],
+                         ["username is invalid"]
+                         )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_short_username(self):
+        '''test if username is too short'''
+        response = self.signup_a_user(self.short_username)
+        self.assertEqual(response.data['errors']['username'],
+                         ["username cannot be less than 2 characters"]
                          )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import jwt
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, UpdateAPIView
@@ -12,14 +13,22 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from datetime import datetime, timedelta
 
+from social_django.utils import load_strategy, load_backend
+from social_core.exceptions import MissingBackend
+from social_core.backends.oauth import BaseOAuth1, BaseOAuth2
+
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer, PasswordResetSerializer, EmailSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer,
+    PasswordResetSerializer, EmailSerializer,
+    SocialAuthenticationSerializer
 )
 from authors.settings import SECRET_KEY
 from authors import settings
 from .models import User
 from .mail import MailSender
+from .backends import JWTAuthentication
+
 
 class RegistrationAPIView(APIView):
     # Allow any user (authenticated or not) to hit this endpoint.
@@ -160,17 +169,18 @@ class PasswordResetView(CreateAPIView):
 
         token = jwt.encode({"email": recipient},
                            settings.SECRET_KEY, algorithm='HS256')
-        
+
         is_user_exising = User.objects.filter(email=recipient).exists()
         if is_user_exising:
             result = MailSender.send_email_message(recipient, token, request)
             return Response(result, status=status.HTTP_200_OK)
-        
+
         else:
             result = {
                 'message': 'A user with the given email was not found'
             }
             return Response(result, status=status.HTTP_404_NOT_FOUND)
+
 
 class PasswordUpdateView(UpdateAPIView):
     permission_classes = (AllowAny,)
@@ -197,3 +207,66 @@ class PasswordUpdateView(UpdateAPIView):
             return Response(result, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'message': e}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SocialAuthenticationView(CreateAPIView):
+    """Authenticates a user using social media sites"""
+    permission_classes = (AllowAny,)
+    serializer_class = SocialAuthenticationSerializer
+    renderer_classes = (UserJSONRenderer,)
+
+    def create(self, request):
+        """Receives a provider and access token for authentication"""
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        client_provider = serializer.data.get("client_provider", None)
+        strategy = load_strategy(request)
+
+        if request.user.is_anonymous:
+            user = None
+        else:
+            user = request.user
+
+        # Load data from backend with associated provider
+        try:
+            backend = load_backend(strategy=strategy, name=client_provider,
+                                   redirect_uri=None)
+            if isinstance(backend, BaseOAuth1):
+                if "access_token_secret" in request.data:
+                    access_token = {
+                        'oauth_token': request.data['access_token'],
+                        'oauth_token_secret': request.data['access_token_secret']
+                    }
+                else:
+                    return Response(
+                        {"error": "You require an access token secret"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            elif isinstance(backend, BaseOAuth2):
+                access_token = request.data["access_token"]
+
+        except MissingBackend:
+            return Response({"error": "The client provider is invalid"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Use pipeline to create the user if details don't exist
+        try:
+
+            authenticated_user = backend.do_auth(access_token, user=user)
+
+        except BaseException as e:
+            return Response({"error": "The token provided is invalid",
+                             "message": str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if authenticated_user and authenticated_user.is_active:
+            email = authenticated_user.email
+            username = authenticated_user.username
+            token = authenticated_user.token
+            user_data = {
+                "username": username,
+                "email": email,
+                "token": token
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
