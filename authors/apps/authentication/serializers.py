@@ -1,5 +1,4 @@
 from django.contrib.auth import authenticate
-import re       # noqa F401
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -57,9 +56,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'required': 'please ensure you have inserted a password',
             'min_length': 'password cannot be less than 8 characters',
             'max-length': 'password cannot be greater than 50 characters',
-            'invalid': 'please consider a password that has a number, '
-                       'an uppercase letter, lowercase letter and'
-                       ' a special character',
+            'invalid': 'please consider a password that has a number, an '
+            'uppercase letter, lowercase letter and a special character',
         }
     )
     email = serializers.EmailField(

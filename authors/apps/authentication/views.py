@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 import jwt
 from rest_framework import status
-from rest_framework.generics import (
-    RetrieveUpdateAPIView, CreateAPIView, UpdateAPIView)
+from rest_framework.generics import (RetrieveUpdateAPIView, CreateAPIView,
+                                     UpdateAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -71,10 +71,9 @@ class RegistrationAPIView(APIView):
 
         serializer.save()
         message = {
-            "message": "User successfully created. "
-                       "Check email for verification link",
-            "user_info": serializer.data,
-            "token": token
+            "message": "User successfully created. Check email for \
+                verification link",
+            "user_info": serializer.data
         }
 
         return Response(message, status=status.HTTP_201_CREATED)

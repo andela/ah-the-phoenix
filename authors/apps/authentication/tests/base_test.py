@@ -1,6 +1,5 @@
 import os
 import jwt
-from rest_framework.views import status  # noqa F401
 from datetime import datetime, timedelta
 from django.urls import reverse
 from django.conf import settings
@@ -235,17 +234,16 @@ class BaseTest(APITestCase):
         return response
 
     def send_reset_password_email(self, user_details):
-        """
-        Invoke the server by sending a post request to the password reset url.
-        """
+        """Invoke the server by sending a post request to the password reset
+         url."""
         return self.client.post(self.password_reset_url,
                                 user_details,
                                 format='json')
 
     @staticmethod
     def create_url():
-        """Create a url with the token, to redirect the user to password
-        update."""
+        """Create a url with the token, to redirect the user
+         to password update."""
         token = jwt.encode({"email": "wearethephoenix34@gmail.com",
                             "iat": datetime.now(),
                             "exp": datetime.utcnow() + timedelta(minutes=5)},
