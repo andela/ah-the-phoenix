@@ -1,7 +1,9 @@
+dist: xenial
+
 language: python
 # show supported Python versions
 python:
-  - "3.6"
+  - "3.7"
 # Install dependencies
 install:
  - pip install -r requirements.txt
