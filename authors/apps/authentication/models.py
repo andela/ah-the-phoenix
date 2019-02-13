@@ -133,7 +133,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         """ Generates a token that expires in 24hrs """
         time = datetime.now() + timedelta(hours=24)
         token = jwt.encode({
-            "eamil": self.email,
+            "email": self.email,
             "username": self.username,
             "exp": int(time.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')

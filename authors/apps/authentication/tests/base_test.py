@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.conf import settings
 from rest_framework.test import APITestCase
 import os
+from ..models import User
 
 
 class BaseTest(APITestCase):
@@ -17,6 +18,13 @@ class BaseTest(APITestCase):
         self.signup_url = reverse('authentication:user_signup')
         self.user_url = reverse('authentication:user_url')
         self.password_reset_url = reverse('authentication:reset_password')
+        self.auth_user_data = {
+            "user": {
+                "email": "pherndegz@gmail.com",
+                "password": "Jsn23$$nd",
+                "username": "PaulGichuki"
+            }
+        }
         self.user_data = {
             "user": {
                 "username": "James",
@@ -175,9 +183,9 @@ class BaseTest(APITestCase):
         }
 
         self.oauth2_data = {
-                    "client_provider": "facebook",
-                    "access_token": self.oauth2_token
-                }
+            "client_provider": "facebook",
+            "access_token": self.oauth2_token
+        }
 
         self.empty_token = {
             "client_provider": "facebook"
@@ -212,15 +220,31 @@ class BaseTest(APITestCase):
                                 user_details,
                                 format='json')
 
+    def authenticate_user(self):
+        """Invoke the server by sending a post request to the signup url."""
+
+        self.client.post(self.signup_url,
+                         self.auth_user_data,
+                         format='json')
+        user = User.objects.get(email=self.auth_user_data['user']['email'])
+        user.is_verified = True
+        user.save()
+        response = self.client.post(self.login_url,
+                                    self.auth_user_data,
+                                    format='json')
+        return response
+
     def send_reset_password_email(self, user_details):
-        """Invoke the server by sending a post request to the password reset url."""
+        """Invoke the server by sending a post request to the password reset 
+        url."""
         return self.client.post(self.password_reset_url,
                                 user_details,
                                 format='json')
 
     @staticmethod
     def create_url():
-        """Create a url with the token, to redirect the user to password update."""
+        """Create a url with the token, to redirect the user to password 
+        update."""
         token = jwt.encode({"email": "wearethephoenix34@gmail.com",
                             "iat": datetime.now(),
                             "exp": datetime.utcnow() + timedelta(minutes=5)},

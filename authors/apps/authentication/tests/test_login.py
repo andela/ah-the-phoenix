@@ -9,10 +9,9 @@ class TestLogin(BaseTest):
 
     def test_successful_user_login(self):
         """Test for a successful user login."""
-        self.signup_a_user(self.user_data)
-        response = self.login_a_user(self.user_login_data)
+        response = self.authenticate_user()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["email"], "wearethephoenix34@gmail.com")
+        self.assertEqual(response.data["email"], "pherndegz@gmail.com")
         self.assertIn("token", response.data)
 
     def test_wrong_email_login(self):
@@ -52,5 +51,16 @@ class TestLogin(BaseTest):
         self.assertEqual(
             response.data["errors"]["password"], [
                 "This field may not be blank."]
+        )
+        self.assertNotIn("token", response.data)
+    
+    def test_login_with_unverified_email(self):
+        """Test for a login with an unverified email"""
+        self.signup_a_user(self.user_data)
+        response = self.login_a_user(self.user_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["errors"]['error'], [
+                "Verify email before logging in."]
         )
         self.assertNotIn("token", response.data)
