@@ -32,6 +32,6 @@ class TestGetUser(BaseTest):
     def test_invalid_token(self):
 
         response = self.client.get(self.user_url,
-                                   HTTP_AUTHORIZATION=f'token hjdgjhfjkfkjkjfg ddd'
+                                   HTTP_AUTHORIZATION=f'token hjdgjfg ddd'
                                    )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
