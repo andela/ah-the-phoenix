@@ -53,3 +53,14 @@ class TestLogin(BaseTest):
                 "This field may not be blank."]
         )
         self.assertNotIn("token", response.data)
+    
+    def test_login_with_unverified_email(self):
+        """Test for a login with an unverified email"""
+        self.signup_a_user(self.user_data)
+        response = self.login_a_user(self.user_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["errors"]['error'], [
+                "Verify email before logging in."]
+        )
+        self.assertNotIn("token", response.data)
