@@ -1,7 +1,9 @@
+dist: xenial
+
 language: python
 # show supported Python versions
 python:
-  - "3.6"
+  - "3.7"
 # Install dependencies
 install:
  - pip install -r requirements.txt
@@ -18,8 +20,7 @@ before_script:
   - python manage.py makemigrations
   - python manage.py migrate
 script: 
- - coverage run --source=authors/apps manage.py test
- - python -m coverage report -m
+ - tox
  # Run coveralls
 after_success:
  - coveralls
