@@ -51,8 +51,7 @@ class RegistrationAPIView(APIView):
         payload = {
             'email': email,
             'username': username,
-            'exp': datetime.utcnow()
-            + timedelta(minutes=60)
+            'exp': datetime.utcnow() + timedelta(minutes=60)
         }
         token = jwt.encode(payload, settings.SECRET_KEY,
                            algorithm='HS256').decode('utf-8')
@@ -73,7 +72,7 @@ class RegistrationAPIView(APIView):
         serializer.save()
         message = {
             "message": "User successfully created. "
-            "Check email for verification link",
+                       "Check email for verification link",
             "user_info": serializer.data,
             "token": token
         }
@@ -95,9 +94,9 @@ class VerifyAPIView(APIView):
                 site_link = get_current_site(request)
                 message = {
                     'message': 'Account already activated. '
-                    'Click on the link to continue',
+                               'Click on the link to continue',
                     'login link': 'http://' + site_link.domain +
-                    '/api/v1/users/login'
+                                  '/api/v1/users/login'
                 }
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
             user.is_verified = True
@@ -105,7 +104,7 @@ class VerifyAPIView(APIView):
 
             message = {
                 'message': f'Welcome {username}, '
-                'Your email has been successfully activated'
+                           'Your email has been successfully activated'
             }
             return Response(message, status=status.HTTP_200_OK)
 

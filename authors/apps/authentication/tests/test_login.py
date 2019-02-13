@@ -53,7 +53,7 @@ class TestLogin(BaseTest):
                 "This field may not be blank."]
         )
         self.assertNotIn("token", response.data)
-    
+
     def test_login_with_unverified_email(self):
         """Test for a login with an unverified email"""
         self.signup_a_user(self.user_data)

@@ -19,14 +19,15 @@ class MailSender:
             'verify_mail.html',
             {
                 'content': 'You are receiving this email because we received a'
-                ' password reset request for your account',
+                           ' password reset request for your account',
                 'title': title,
                 'username': User.objects.get(email=recipient).get_short_name(),
                 'verification_link': "http://" + url.domain +
-                '/api/v1/users/password_update/'+token.decode(),
+                                     '/api/v1/users/password_update/' +
+                                     token.decode(),
             })
         send_mail(title, full_mail, mail_sender, [
-                  recipient], html_message=full_mail)
+            recipient], html_message=full_mail)
         response = {
             'message': 'A password reset link has been sent to your email'
         }

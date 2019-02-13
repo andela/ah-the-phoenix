@@ -1,4 +1,3 @@
 [MASTER]
-
-ignore=CVS
-disable=missing-docstring
+ignore=CVS, migrations, base
+disable=missing-docstring, import-error

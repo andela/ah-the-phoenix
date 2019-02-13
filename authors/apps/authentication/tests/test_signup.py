@@ -131,10 +131,9 @@ class TestRegistration(BaseTest):
     def test_verification_with_invalid_token(self):
         """Test if user email can be successfull verified"""
         verification_url = reverse('authentication:verify_email', kwargs={
-                                   'token': 'weucnuwencusn'})
-        self.client.get(
-            verification_url,
-            HTTP_AUTHORIZATION=f'token {token}'
+            'token': 'weucnuwencusn'})
+        response = self.client.get(
+            verification_url
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -153,7 +152,7 @@ class TestRegistration(BaseTest):
         response = self.signup_a_user(self.password_lacks_specialchar)
         self.assertEqual(response.data['errors']['password'],
                          ["please consider a password that has a number, an "
-                         "uppercase letter, lowercase letter and a special"
+                          "uppercase letter, lowercase letter and a special"
                           " character"]
                          )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -25,8 +25,8 @@ class JWTAuthentication(authentication.BaseAuthentication):
             message = "Invalid token header. No credentials provided."
             raise exceptions.AuthenticationFailed(message)
         if len(auth_header) > 2:
-            message = "Invalid token header. "
-            "Token should not contain whitespaces."
+            message = "Invalid token header. "\
+                "Token should not contain whitespaces."
             raise exceptions.AuthenticationFailed(message)
 
         prefix = auth_header[0].decode('utf-8')
@@ -44,7 +44,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
 
         try:
             payload = jwt.decode(token, settings.SECRET_KEY)
-        except User.DoesNotExist:
+        except exceptions.AuthenticationFailed:
             message = "Could not decode token"
             raise exceptions.AuthenticationFailed(message)
 
