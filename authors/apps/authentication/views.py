@@ -72,9 +72,7 @@ class RegistrationAPIView(APIView):
 
         serializer.save()
         message = {
-            "message": "User successfully created. Check email for verification link",
-            "user_info": serializer.data,
-            "token": token
+            "message": "User successfully created. Check email for verification link"
         }
 
         return Response(message, status=status.HTTP_201_CREATED)
@@ -107,7 +105,7 @@ class VerifyAPIView(APIView):
 
         except Exception:
             message = {
-                'error': 'Verification email is not valid. Try again'
+                'error': 'Verification token is not valid. Try again'
             }
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
 

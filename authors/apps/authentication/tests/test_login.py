@@ -9,10 +9,9 @@ class TestLogin(BaseTest):
 
     def test_successful_user_login(self):
         """Test for a successful user login."""
-        self.signup_a_user(self.user_data)
-        response = self.login_a_user(self.user_login_data)
+        response = self.authenticate_user()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["email"], "wearethephoenix34@gmail.com")
+        self.assertEqual(response.data["email"], "pherndegz@gmail.com")
         self.assertIn("token", response.data)
 
     def test_wrong_email_login(self):

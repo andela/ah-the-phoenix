@@ -1,8 +1,12 @@
-from rest_framework import status
-from django.urls import reverse
+from datetime import datetime, timedelta
 
-from authors.apps.authentication.tests.base_test import BaseTest
+import jwt
+from django.urls import reverse
+from rest_framework import status
+
+from authors import settings
 from authors.apps.authentication.models import User
+from authors.apps.authentication.tests.base_test import BaseTest
 
 
 class TestRegistration(BaseTest):
@@ -13,9 +17,9 @@ class TestRegistration(BaseTest):
         """Test for successful user registration."""
         response = self.signup_a_user(self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['user_info']
-                         ["email"], "wearethephoenix34@gmail.com")
-        self.assertIn("token", response.data)
+        self.assertEqual(response.data['message'],
+                         "User successfully created. Check email for "
+                         "verification link")
 
     def test_registeration_no_username(self):
         """Test for user registration if the username field is left blank."""
@@ -86,18 +90,23 @@ class TestRegistration(BaseTest):
     def test_registeration_for_a_super_user(self):
         """Test if a superuser can be successfully created."""
         admin_user = User.objects.create_superuser(
-                        'jey',
-                        'jey@gmail.com',
-                        'jemo'
-                    )
+            'jey',
+            'jey@gmail.com',
+            'jemo'
+        )
         self.assertEqual(admin_user.is_active, True)
         self.assertEqual(admin_user.is_staff, True)
         self.assertEqual(admin_user.is_superuser, True)
 
     def test_successful_email_verification(self):
         """Test if user email can be successfull verified"""
-
-        token = self.signup_a_user(self.user_data).data['token']
+        self.signup_a_user(self.user_data)
+        time = datetime.now() + timedelta(hours=24)
+        token = jwt.encode({
+            "email": self.user_data['user']['email'],
+            "username": self.user_data['user']['username'],
+            "exp": int(time.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
         verification_url = reverse(
             'authentication:verify_email', kwargs={'token': token})
 
@@ -108,31 +117,26 @@ class TestRegistration(BaseTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_already_validated_email(self):
-        """Test if user email can be successfull verified"""
-        token = self.signup_a_user(self.user_data).data['token']
+        """Test if user email can be verified when its already verified"""
+        token = self.authenticate_user().data["token"]
         verification_url = reverse(
             'authentication:verify_email', kwargs={'token': token})
-
-        self.client.get(
-            verification_url,
-            HTTP_AUTHORIZATION=f'token {token}'
-        )
-        response_two = self.client.get(
-            verification_url,
-            HTTP_AUTHORIZATION=f'token {token}'
-        )
-        self.assertEqual(response_two.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_verification_with_invalid_token(self):
-        """Test if user email can be successfull verified"""
-        token = self.signup_a_user(self.user_data).data['token']
-        verification_url = reverse('authentication:verify_email', kwargs={
-                                   'token': 'weucnuwencusn'})
 
         response = self.client.get(
             verification_url,
             HTTP_AUTHORIZATION=f'token {token}'
         )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_verification_with_invalid_token(self):
+        """Test if user email can be successfull verified"""
+        verification_url = reverse('authentication:verify_email', kwargs={
+                                   'token': 'weucnuwencusn'})
+
+        response = self.client.get(
+            verification_url
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_registeration_for_a_super_user_no_password(self):
         """Test if superuser lacks password during registration"""
@@ -187,7 +191,7 @@ class TestRegistration(BaseTest):
 
     def test_update_user(self):
         """Test for successful user registration."""
-        token = self.signup_a_user(self.user_data).data["user_info"]["token"]
+        token = self.authenticate_user().data["token"]
         response = self.client.put(self.user_url,
                                    self.user_data,
                                    HTTP_AUTHORIZATION=f'token {token}',
