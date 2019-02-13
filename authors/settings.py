@@ -47,7 +47,6 @@ INSTALLED_APPS = [
 
     'authors.apps.authentication',
     'authors.apps.core',
-    'authors.apps.profiles',
     'authors.apps.base',
 <<<<<<< HEAD
     'authors.apps.articles'

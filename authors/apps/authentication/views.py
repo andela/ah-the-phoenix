@@ -1,5 +1,10 @@
 from __future__ import unicode_literals
-
+from rest_framework.generics import (
+    RetrieveUpdateAPIView, CreateAPIView, 
+    UpdateAPIView, ListAPIView, RetrieveUpdateAPIView)
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 import os
 from datetime import datetime, timedelta
 
@@ -10,22 +15,21 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from rest_framework import generics, status
-from rest_framework.generics import (CreateAPIView, RetrieveUpdateAPIView,
-                                     UpdateAPIView)
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
 
-from authors.apps.authentication.models import User
 from social_core.backends.oauth import BaseOAuth1, BaseOAuth2
 from social_core.exceptions import MissingBackend
 from social_django.utils import load_backend, load_strategy
 
-from .mail import MailSender
 from .renderers import UserJSONRenderer
+from authors.settings import SECRET_KEY     # noqa F401
+from authors import settings            # noqa F401
+from .models import User
+from .mail import MailSender
 from .serializers import (EmailSerializer, LoginSerializer,
                           PasswordResetSerializer, RegistrationSerializer,
                           SocialAuthenticationSerializer, UserSerializer,
+                          ProfilesSerializer,
                           FollowerFollowingSerializer,
                           FollowUnfollowSerializer)
 
@@ -172,19 +176,21 @@ class PasswordResetView(CreateAPIView):
 
         token = jwt.encode({"email": recipient},
                            settings.SECRET_KEY, algorithm='HS256')
-        
+
         is_user_exising = User.objects.filter(email=recipient).exists()
         if is_user_exising:
             result = MailSender.send_email_message(recipient, token, request)
             return Response(result, status=status.HTTP_200_OK)
-        
+
         else:
             result = {
                 'message': 'A user with the given email was not found'
             }
             return Response(result, status=status.HTTP_404_NOT_FOUND)
 
+
 class PasswordUpdateView(UpdateAPIView):
+
     permission_classes = (AllowAny,)
     serializer_class = PasswordResetSerializer
 
@@ -395,3 +401,46 @@ class FollowerFollowingAPIView(generics.ListAPIView):
                 "Following": following_serializer.data
             }
             return Response(message, status=status.HTTP_200_OK)
+class ProfileRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = ProfilesSerializer
+
+    def get(self, request, username, *args, **kwargs):
+        try:
+            profile = User.objects.get(
+                username=username
+            )
+        except Exception:
+            raise NotFound("The requested profile was not found")
+
+        serializer = self.serializer_class(profile)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, username):
+        if request.user.username != username:
+            response = {
+                "message": "You don't have permission to edit this profile"}
+            return Response(response, status=status.HTTP_403_FORBIDDEN)
+        data = request.data
+        serializer = self.serializer_class(instance=request.user,
+                                           data=data, partial=True)
+        if serializer.is_valid():
+            self.check_object_permissions(request, data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileGetAPIView(ListAPIView):
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = ProfilesSerializer
+    queryset = User.objects.all()
+
+    def get(self, request):
+        queryset = self.get_queryset()
+        serializer = ProfilesSerializer(queryset, many=True)
+        return Response({"Profiles": serializer.data})

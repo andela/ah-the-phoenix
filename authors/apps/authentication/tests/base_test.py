@@ -1,11 +1,11 @@
 import os
-import jwt
 from datetime import datetime, timedelta
+import jwt
+from django.urls import reverse
 from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from ..models import User
-
 
 
 class BaseTest(APITestCase):
@@ -19,6 +19,7 @@ class BaseTest(APITestCase):
         self.login_url = reverse('authentication:user_login')
         self.password_reset_url = reverse('authentication:reset_password')
         self.articles_url = reverse('articles:articles-all')
+        self.profile_url = reverse('authentication:get_profiles')
         self.auth_user_data = {
             "user": {
                 "email": "pherndegz@gmail.com",
@@ -26,7 +27,6 @@ class BaseTest(APITestCase):
                 "username": "PaulGichuki"
             }
         }
-        self.profile_url = reverse('profiles:get_profiles')
         self.user_data = {
             "user": {
                 "username": "James",
@@ -254,22 +254,22 @@ class BaseTest(APITestCase):
                 "username": "kim",
                 "password": "Kim123@#"
         self.email_forgot_password = {
-                            "email": "wearethephoenix34@gmail.com"
+            "email": "wearethephoenix34@gmail.com"
         }
 
         self.empty_email_field = {
-            "email":""
+            "email": ""
         }
 
-        self.passwords={
-            "password":"jamesSavali8@",
-            "confirm_password":"jamesSavali8@"
+        self.passwords = {
+            "password": "jamesSavali8@",
+            "confirm_password": "jamesSavali8@"
         }
 
         self.profile = {
             'profile': {
                 "bio": "i am an introvert",
-                "image": "https://workhound.com/wp-content/uploads/2017/05/placeholder-profile-pic.png"
+                "image": "https://workhound.com/05/placeholder-profile-pic.png"
             }
         }
 
@@ -288,6 +288,9 @@ class BaseTest(APITestCase):
 
     def login_a_user(self, user_details):
         """Invoke the server by sending a post request to the login url."""
+        user = User.objects.get(email=self.user_data['user']['email'])
+        user.is_verified = True
+        user.save()
         return self.client.post(self.login_url,
                                 user_details,
                                 format='json')
@@ -320,10 +323,10 @@ class BaseTest(APITestCase):
         token = jwt.encode({"email": "wearethephoenix34@gmail.com",
                             "iat": datetime.now(),
                             "exp": datetime.utcnow() + timedelta(minutes=5)},
-                            settings.SECRET_KEY,
-                            algorithm='HS256').decode()
+                           settings.SECRET_KEY,
+                           algorithm='HS256').decode()
         reset_url = reverse("authentication:update_password",
-             kwargs={"token": token})
+                            kwargs={"token": token})
         return reset_url
 
     def signup_user(self):
@@ -377,13 +380,13 @@ class BaseTest(APITestCase):
         return response
     def get_single_profile_url(self):
         """Return a user's profile url"""
-        url = self.profile_url +  f"{self.user_data['user']['username']}" + "/"
+        url = self.profile_url + f"{self.user_data['user']['username']}" + "/"
         return url
-    
+
     def verify_user(self, uri):
         """Signup, login and get a user's profile"""
         self.signup_a_user(self.user_data)
         user = self.login_a_user(self.user_login_data)
         token = user.data["token"]
         return self.client.get(uri,
-                                    HTTP_AUTHORIZATION=f'token {token}')
+                               HTTP_AUTHORIZATION=f'token {token}')

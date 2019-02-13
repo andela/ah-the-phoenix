@@ -230,6 +230,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SocialAuthenticationSerializer(serializers.Serializer):
+
     """Takes in access token, provider, and access_token_secret"""
 
     client_provider = serializers.CharField(max_length=255, required=True)
@@ -265,3 +266,15 @@ class FollowUnfollowSerializer(serializers.ModelSerializer):
     def get_following_total(self, obj):
         """Returns number of users one is following"""
         return obj.following.count()
+class ProfilesSerializer(serializers.ModelSerializer):
+
+    """Serialize user profile data"""
+
+    username = serializers.CharField(read_only=True)
+    bio = serializers.CharField(allow_blank=True, required=False)
+    image = serializers.ImageField(default=None)
+
+    class Meta:
+        model = User
+        fields = ('username', 'bio', 'image', 'created_at', 'updated_at')
+        read_only_fields = ('username', 'created_at', 'updated_at',)
