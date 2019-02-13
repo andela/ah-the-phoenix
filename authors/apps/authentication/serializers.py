@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate
-import re
+import re       # noqa F401
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -19,9 +19,11 @@ def password_validator():
             'required': 'please ensure you have inserted a password',
             'min_length': 'password cannot be less than 8 characters',
             'max-length': 'password cannot be greater than 50 characters',
-            'invalid': 'please consider a password that has a number, an uppercase letter, lowercase letter and a special character',
+            'invalid': 'please consider a password that has a number, '
+            'an uppercase letter, lowercase letter and a special character',
         }
     )
+
 
 def email_validator():
     return serializers.EmailField(
@@ -38,6 +40,7 @@ def email_validator():
         }
     )
 
+
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
 
@@ -53,7 +56,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'required': 'please ensure you have inserted a password',
             'min_length': 'password cannot be less than 8 characters',
             'max-length': 'password cannot be greater than 50 characters',
-            'invalid': 'please consider a password that has a number, an uppercase letter, lowercase letter and a special character',
+            'invalid': 'please consider a password that has a number, '
+            'an uppercase letter, lowercase letter and a special character',
         }
     )
     email = serializers.EmailField(
@@ -101,21 +105,22 @@ class RegistrationSerializer(serializers.ModelSerializer):
         # Use the `create_user` method we wrote earlier to create a new user.
         return User.objects.create_user(**validated_data)
 
+
 class EmailSerializer(serializers.ModelSerializer):
 
     """Ensure email is valid and it is inserted"""
 
     class Meta:
         model = User
-         # List all of the fields that could possibly be included in a request
+        # List all of the fields that could possibly be included in a request
         # or response, including fields specified explicitly above.
         fields = ['email']
-    
+
 
 class PasswordResetSerializer(EmailSerializer, serializers.ModelSerializer):
 
     """Serialize for the password update functionality"""
-    
+
     password = password_validator()
     confirm_password = serializers.CharField(
         max_length=128,
@@ -126,7 +131,7 @@ class PasswordResetSerializer(EmailSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = User
-         # List all of the fields that could possibly be included in a request
+        # List all of the fields that could possibly be included in a request
         # or response, including fields specified explicitly above.
         fields = ['password', 'confirm_password']
 

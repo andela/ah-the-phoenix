@@ -3,7 +3,7 @@ from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 import coreapi
 from rest_framework import response
 
-#API definitions
+# API definitions
 @api_view()
 @renderer_classes([SwaggerUIRenderer, OpenAPIRenderer])
 def schema_view(request):

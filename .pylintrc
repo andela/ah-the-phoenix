@@ -1,0 +1,4 @@
+[MASTER]
+
+ignore=CVS
+disable=missing-docstring

@@ -8,11 +8,12 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
+
 class UserManager(BaseUserManager):
     """
     Django requires that custom users define their own Manager class. By
     inheriting from `BaseUserManager`, we get a lot of the same code used by
-    Django to create a `User` for free. 
+    Django to create a `User` for free.
 
     All we have to do is override the `create_user` function which we will use
     to create `User` objects.
@@ -34,21 +35,21 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email, password):
-      """
-      Create and return a `User` with superuser powers.
+        """
+        Create and return a `User` with superuser powers.
 
-      Superuser powers means that this use is an admin that can do anything
-      they want.
-      """
-      if password is None:
-          raise TypeError('Superusers must have a password.')
+        Superuser powers means that this use is an admin that can do anything
+        they want.
+        """
+        if password is None:
+            raise TypeError('Superusers must have a password.')
 
-      user = self.create_user(username, email, password)
-      user.is_superuser = True
-      user.is_staff = True
-      user.save()
+        user = self.create_user(username, email, password)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
 
-      return user
+        return user
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -76,8 +77,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # falsed.
     is_staff = models.BooleanField(default=False)
 
-    # The 'is_verified' flag is used to determine whether a users account is verified
-    #By default the user it is False until their account email is verfied
+    # The 'is_verified' is used to determine if a users account is verified
+    # By default the user it is False until their account email is verfied
     is_verified = models.BooleanField(default=False)
 
     # A timestamp representing when this object was created.
@@ -114,12 +115,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.generate_jwt_token()
 
     def get_full_name(self):
-      """
-      This method is required by Django for things like handling emails.
-      Typically, this would be the user's first and last name. Since we do
-      not store the user's real name, we return their username instead.
-      """
-      return self.username
+        """
+        This method is required by Django for things like handling emails.
+        Typically, this would be the user's first and last name. Since we do
+        not store the user's real name, we return their username instead.
+        """
+        return self.username
 
     def get_short_name(self):
         """
@@ -137,7 +138,5 @@ class User(AbstractBaseUser, PermissionsMixin):
             "username": self.username,
             "exp": int(time.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')
-        
+
         return token.decode('utf-8')
-
-

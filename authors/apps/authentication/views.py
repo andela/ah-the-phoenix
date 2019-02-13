@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 import jwt
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.generics import (
+    RetrieveUpdateAPIView, CreateAPIView, UpdateAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import jwt
 import os
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -23,11 +23,11 @@ from .serializers import (
     PasswordResetSerializer, EmailSerializer,
     SocialAuthenticationSerializer
 )
-from authors.settings import SECRET_KEY
-from authors import settings
+from authors.settings import SECRET_KEY     # noqa F401
+from authors import settings            # noqa F401
 from .models import User
 from .mail import MailSender
-from .backends import JWTAuthentication
+from .backends import JWTAuthentication     # noqa F401
 
 
 class RegistrationAPIView(APIView):
@@ -72,7 +72,10 @@ class RegistrationAPIView(APIView):
 
         serializer.save()
         message = {
-            "message": "User successfully created. Check email for verification link"
+            "message": "User successfully created. "
+            "Check email for verification link",
+            "user_info": serializer.data,
+            "token": token
         }
 
         return Response(message, status=status.HTTP_201_CREATED)
@@ -91,15 +94,18 @@ class VerifyAPIView(APIView):
             if user.is_verified:
                 site_link = get_current_site(request)
                 message = {
-                    'message': 'Account already activated. Click on the link to continue',
-                    'login link': 'http://' + site_link.domain + '/api/v1/users/login'
+                    'message': 'Account already activated. '
+                    'Click on the link to continue',
+                    'login link': 'http://' + site_link.domain +
+                    '/api/v1/users/login'
                 }
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
             user.is_verified = True
             user.save()
 
             message = {
-                'message': f'Welcome {username}, Your email has been successfully activated'
+                'message': f'Welcome {username}, '
+                'Your email has been successfully activated'
             }
             return Response(message, status=status.HTTP_200_OK)
 
@@ -163,7 +169,8 @@ class PasswordResetView(CreateAPIView):
     def post(self, request):
         recipient = request.data.get('email', {})
         if not recipient:
-            return Response({"message": "Email field cannot be blank"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Email field cannot be blank"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         token = jwt.encode({"email": recipient},
                            settings.SECRET_KEY, algorithm='HS256')
@@ -189,7 +196,8 @@ class PasswordUpdateView(UpdateAPIView):
         password = request.data.get('password')
         confirm_password = request.data.get('confirm_password')
         if password != confirm_password:
-            return Response({"message": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Passwords do not match"},
+                            status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(data={
             "password": password
         })
@@ -233,7 +241,8 @@ class SocialAuthenticationView(CreateAPIView):
                 if "access_token_secret" in request.data:
                     access_token = {
                         'oauth_token': request.data['access_token'],
-                        'oauth_token_secret': request.data['access_token_secret']
+                        'oauth_token_secret':
+                        request.data['access_token_secret']
                     }
                 else:
                     return Response(

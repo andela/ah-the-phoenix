@@ -41,6 +41,7 @@ simplejson==3.16.0
 six==1.10.0
 social-auth-app-django==3.1.0
 social-auth-core==3.0.0
+tox==3.7.0
 uritemplate==3.0.0
 urllib3==1.24.1
 virtualenv==16.3.0

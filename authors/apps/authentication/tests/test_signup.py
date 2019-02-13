@@ -132,9 +132,9 @@ class TestRegistration(BaseTest):
         """Test if user email can be successfull verified"""
         verification_url = reverse('authentication:verify_email', kwargs={
                                    'token': 'weucnuwencusn'})
-
-        response = self.client.get(
-            verification_url
+        self.client.get(
+            verification_url,
+            HTTP_AUTHORIZATION=f'token {token}'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -152,7 +152,9 @@ class TestRegistration(BaseTest):
         """test if a password is valid"""
         response = self.signup_a_user(self.password_lacks_specialchar)
         self.assertEqual(response.data['errors']['password'],
-                         ["please consider a password that has a number, an uppercase letter, lowercase letter and a special character"]
+                         ["please consider a password that has a number, an "
+                         "uppercase letter, lowercase letter and a special"
+                          " character"]
                          )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -171,23 +173,6 @@ class TestRegistration(BaseTest):
                          ["username cannot be less than 2 characters"]
                          )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_username_nodigits(self):
-        """test if username is all digits"""
-        response = self.signup_a_user(self.username_nodigits)
-        self.assertEqual(response.data['errors']['username'],
-                         ["username is invalid"]
-                         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_short_username(self):
-        '''test if username is too short'''
-        response = self.signup_a_user(self.short_username)
-        self.assertEqual(response.data['errors']['username'],
-                         ["username cannot be less than 2 characters"]
-                         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertNotIn("token", response.data)
 
     def test_update_user(self):
         """Test for successful user registration."""
