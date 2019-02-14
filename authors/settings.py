@@ -41,12 +41,15 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'rest_framework_swagger',
+    'cloudinary',
     'social_django',
+
 
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
-    'authors.apps.base'
+    'authors.apps.base',
+    'authors.apps.articles'
 ]
 
 MIDDLEWARE = [
@@ -208,3 +211,10 @@ LOGIN_URL = 'api/v1/social/login/'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+CLOUDINARY = {
+   'cloud_name': os.getenv('CLOUDINARY_NAME'),
+   'api_key': os.getenv('CLOUDINARY_KEY'),
+   'api_secret': os.getenv('CLOUDINARY_SECRET'),
+   'secure': True
+}
