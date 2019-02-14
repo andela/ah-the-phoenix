@@ -5,7 +5,9 @@ from authors.apps.articles import views
 app_name = "articles"
 
 urlpatterns = [
-    path('articles/', views.ArticleList.as_view(), name='articles'),
-    path('articles/<slug>/', views.ArticleDetail.as_view(),
-         name='article-details'),
+    path('articles/', views.ArticleViewSet.as_view(
+        {'get': 'list', "post": "create"}), name='articles-all'),
+    path('articles/<pk>/', views.ArticleViewSet.as_view(
+        {"get": "retrieve", "put": "update", "patch": "partial_update",
+         "delete": "destroy"}), name='single-article')
 ]

@@ -1,42 +1,34 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 
-from rest_framework.generics import (
-    ListCreateAPIView, RetrieveUpdateDestroyAPIView)
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-
-
-from authors.apps.core.permissions import IsOwnerOrReadOnly
+from rest_framework import viewsets
 
 from .models import Article
 from .serializers import ArticleSerializer
 from .renderers import ArticleJsonRenderer
 
 
-def get_article(slug):
+class ArticleViewSet(viewsets.ViewSet):
+    """
+    Example empty viewset demonstrating the standard
+    actions that will be handled by a router class.
 
-    try:
-        article = Article.objects.get(slug=slug)
-
-    except Exception:
-        return Response(
-            {"error": "Article not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    return article
-
-
-class ArticleList(ListCreateAPIView):
-    """Allows user to post and view a list of articles"""
-
-    serializer_class = ArticleSerializer
-    renderer_classes = (ArticleJsonRenderer,)
+    If you're using format suffixes, make sure to also include
+    the `format=None` keyword argument for each action.
+    """
     queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    renderer_classes = (ArticleJsonRenderer,)
 
-    def post(self, request):
+    def list(self, request):
+        queryset = Article.objects.all()
+        serializer = ArticleSerializer(queryset, many=True)
+        return Response({"Articles": serializer.data})
+
+    def create(self, request):
         """create an article"""
         article = request.data
         serializer = self.serializer_class(
@@ -45,34 +37,25 @@ class ArticleList(ListCreateAPIView):
         serializer.save(author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-class ArticleDetail(RetrieveUpdateDestroyAPIView):
-    """Allows user to get, update and delete an article"""
-
-    lookup_field = 'slug'
-    queryset = Article.objects.all()
-    renderer_classes = (ArticleJsonRenderer,)
-    serializer_class = ArticleSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly,)
-
-    def get(self, request, slug):
+    def retrieve(self, request, pk=None):
         """
         Returns article with the given slug if exists
         or returns an exception if no article with slug exists
         """
-        article = get_article(slug)
+        queryset = Article.objects.all()
+        article = get_object_or_404(queryset, pk=pk)
+        serializer = ArticleSerializer(article)
+        return Response(serializer.data)
 
-        return super().get(request, slug)
-
-    def update(self, request, slug):
+    def update(self, request, pk=None):
         """
         Update an article
         """
-        article = get_article(slug)
-
+        queryset = Article.objects.all()
+        article = get_object_or_404(queryset, pk=pk)
         article_data = request.data.get('article', {})
         serializer = self.serializer_class(
-        article, data=article_data, partial=True)
+            data=article_data, partial=False)
 
         if serializer.is_valid():
             self.check_object_permissions(request, article)
@@ -81,12 +64,12 @@ class ArticleDetail(RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, slug):
-        """Allows user to partially update article"""
-        article = get_article(slug)
-
+    def partial_update(self, request, pk=None):
+        queryset = Article.objects.all()
+        article = get_object_or_404(queryset, pk=pk)
         article_data = request.data
-        serializer = self.serializer_class(instance=article, data=article_data, partial=False)
+        serializer = self.serializer_class(
+            instance=article, data=article_data, partial=True)
         if serializer.is_valid():
             self.check_object_permissions(request, article)
 
@@ -95,11 +78,10 @@ class ArticleDetail(RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, pk=None):
 
-    def delete(self, request, slug):
-        """user can delete article"""
-        if not get_article(slug):
-            article_not_found()
-
-        super().delete(self, request, slug)
-        return Response({"message": "article deleted successfully"})
+        queryset = Article.objects.all()
+        article = get_object_or_404(queryset, pk=pk)
+        article.delete()
+        return Response({"message": "article deleted successfully"},
+                        status=status.HTTP_200_OK)

@@ -1,8 +1,8 @@
 import os
 import jwt
 from datetime import datetime, timedelta
-from django.urls import reverse
 from django.conf import settings
+from django.urls import reverse
 from rest_framework.test import APITestCase
 from ..models import User
 
@@ -13,10 +13,11 @@ class BaseTest(APITestCase):
 
     def setUp(self):
         """Define all variables required by other test cases."""
-        self.login_url = reverse('authentication:user_login')
-        self.signup_url = reverse('authentication:user_signup')
         self.user_url = reverse('authentication:user_url')
+        self.signup_url = reverse('authentication:user_signup')
+        self.login_url = reverse('authentication:user_login')
         self.password_reset_url = reverse('authentication:reset_password')
+        self.articles_url = reverse('articles:articles-all')
         self.auth_user_data = {
             "user": {
                 "email": "pherndegz@gmail.com",
@@ -163,6 +164,37 @@ class BaseTest(APITestCase):
                 "email": "winston@andela.com",
                 "password": "Winston#67"
             }
+        }
+        self.article = {
+            "title": "the andela way",
+            "description": "andela is awesome",
+            "body": "lets be epic"
+        }
+
+        self.blank_title = {
+            "title": "",
+            "description": "andela is awesome",
+            "body": "lets be epic"
+        }
+
+        self.blank_body = {
+            "title": "the andela way",
+            "description": "andela is awesome",
+            "body": ""
+        }
+
+        self.update_article = {
+            "article": {
+                "title": "Update: the andela way",
+                "description": "andela is awesome and EPIC",
+                "body": "this is andela"
+            }
+        }
+
+        self.update_partial_article = {
+            "title": "Update: the andela way",
+            "description": "andela is awesome and EPIC",
+            "body": "this is andela"
         }
 
         self.social_authentication_url = reverse('authentication:social')

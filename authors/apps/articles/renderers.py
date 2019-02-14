@@ -1,6 +1,7 @@
 import json
 from rest_framework import renderers
 
+
 class ArticleJsonRenderer(renderers.BaseRenderer):
     """
     Renders an article into a list or single article
@@ -16,13 +17,10 @@ class ArticleJsonRenderer(renderers.BaseRenderer):
 
         else:
             """
-            renders a single article or 
+            renders a single article or
             """
             error = data.get('detail')
             if error:
                 return json.dumps({'message': data})
 
             return json.dumps({'article': data})
-            
-            
-
