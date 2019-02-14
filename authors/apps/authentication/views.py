@@ -1,33 +1,34 @@
 from __future__ import unicode_literals
+
+import os
+from datetime import datetime, timedelta
+
 import jwt
-from rest_framework import status
-from rest_framework.generics import (RetrieveUpdateAPIView, CreateAPIView,
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from rest_framework import generics, status
+from rest_framework.generics import (CreateAPIView, RetrieveUpdateAPIView,
                                      UpdateAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import os
-from django.conf import settings
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from datetime import datetime, timedelta
 
-from social_django.utils import load_strategy, load_backend
-from social_core.exceptions import MissingBackend
+from authors.apps.authentication.models import User
+from authors.apps.authentication.utils import Utils
 from social_core.backends.oauth import BaseOAuth1, BaseOAuth2
+from social_core.exceptions import MissingBackend
+from social_django.utils import load_backend, load_strategy
 
-from .renderers import UserJSONRenderer
-from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer,
-    PasswordResetSerializer, EmailSerializer,
-    SocialAuthenticationSerializer
-)
-from authors.settings import SECRET_KEY     # noqa F401
-from authors import settings            # noqa F401
-from .models import User
 from .mail import MailSender
-from .backends import JWTAuthentication     # noqa F401
+from .renderers import UserJSONRenderer
+from .serializers import (EmailSerializer, LoginSerializer,
+                          PasswordResetSerializer, RegistrationSerializer,
+                          SocialAuthenticationSerializer, UserSerializer,
+                          FollowerFollowingSerializer,
+                          FollowUnfollowSerializer)
 
 
 class RegistrationAPIView(APIView):
@@ -71,9 +72,9 @@ class RegistrationAPIView(APIView):
 
         serializer.save()
         message = {
-            "message": "User successfully created. Check email for \
-                verification link",
-            "user_info": serializer.data
+            "message": "User successfully created. Check email for "
+            "verification link",
+            "user_id": serializer.data['id']
         }
 
         return Response(message, status=status.HTTP_201_CREATED)
@@ -275,3 +276,129 @@ class SocialAuthenticationView(CreateAPIView):
                 "token": token
             }
             return Response(user_data, status=status.HTTP_200_OK)
+
+
+class FollowUnfollowAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    APIView for following a user
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, id, format=None):
+        """
+        This method create a user relationship btween the user
+        with the username passed in and the user sending the
+        request
+        """
+        try:
+            to_be_followed = User.objects.get(pk=id)
+        except Exception:
+            return Response({
+                'error': "User not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        follower = User.objects.get(pk=request.user.id)
+
+        if follower == to_be_followed:
+            message = {
+                "error": "You cannot follow yourself"
+            }
+            return Response(message, status=status.HTTP_406_NOT_ACCEPTABLE)
+        # import pdb; pdb.set_trace()
+
+        try:
+            already_followed = follower.following.filter(pk=id).exists()
+            if already_followed:
+                return Response({
+                    'error': 'You already follow this user'
+                },
+                    status=status.HTTP_406_NOT_ACCEPTABLE)
+        except Exception as e:
+            return Response({
+                'error': 'Error when following',
+                'message': str(e)
+            },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        follower.following.add(to_be_followed)
+        follower.save()
+
+        serializer = FollowUnfollowSerializer(to_be_followed)
+        message = {
+            "message": "Profile successfully followed",
+            "user": serializer.data
+        }
+        return Response(message, status=status.HTTP_200_OK)
+
+    def delete(self, request, id, format=None):
+        """
+        Deletes a follow relationship between the user sending the
+        request and the user with the username passed
+        """
+        try:
+            to_be_unfollowed = User.objects.get(pk=id)
+        except Exception:
+            return Response({
+                'error': "User not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        follower = User.objects.get(pk=request.user.id)
+
+        relationship = follower.following.filter(pk=id).exists()
+        if not relationship:
+            return Response(
+                {
+                    'error': 'You do not follow this user'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        follower.following.remove(id)
+        serializer = FollowUnfollowSerializer(to_be_unfollowed)
+        message = {
+            "message": "Profile successfully unfollowed",
+            "user": serializer.data
+        }
+        return Response(message, status=status.HTTP_200_OK)
+
+
+class FollowerFollowingAPIView(generics.ListAPIView):
+    """
+    This API returns a list of user followers and following
+    """
+
+    def get_queryset(self):
+        user = get_object_or_404(User, id=self.kwargs['id'])
+
+        followed_friends = user.following.all()
+        following_friends = user.followers.all()
+
+        return {
+            "followed": followed_friends,
+            "followers": following_friends
+        }
+
+    def get(self, request, id, format=None):
+        """Returns the user's followed user"""
+
+        if self.get_queryset() is not None:
+
+            followed_friend_objects = self.get_queryset()["followed"]
+            following_friend_objects = self.get_queryset()["followers"]
+
+            users_followed = [u for u in followed_friend_objects]
+            users_following = [u for u in following_friend_objects]
+
+            follower_serializer = FollowerFollowingSerializer(
+                users_following, many=True)
+            following_serializer = FollowerFollowingSerializer(
+                users_followed, many=True)
+
+            followers = Utils().create_following_list(follower_serializer.data)
+            following = Utils().create_following_list(
+                following_serializer.data)
+            message = {
+                "Followers": followers,
+                "Following": following
+            }
+            return Response(message, status=status.HTTP_200_OK)

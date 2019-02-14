@@ -207,6 +207,21 @@ class BaseTest(APITestCase):
             "confirm_password": "jamesSavali8@"
         }
 
+        self.signup_data = {
+            "user": {
+                "email": "sam@gmail.com",
+                "username": "Sam",
+                "password": "Sam123@#"
+            }
+        }
+        self.test_user = {
+            "user": {
+                "email": "kimm@gmail.com",
+                "username": "kim",
+                "password": "Kim123@#"
+            }
+        }
+
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
@@ -252,3 +267,50 @@ class BaseTest(APITestCase):
         reset_url = reverse("authentication:update_password",
                             kwargs={"token": token})
         return reset_url
+
+    def signup_user(self):
+        """This method registers new user and returns a token"""
+        response = self.client.post(
+            self.signup_url,
+            self.signup_data,
+            format="json"
+        )
+        token = response.data["user_info"]["token"]
+        return token
+
+    def create_test_user(self):
+        """This method registers a test user for testcases"""
+        res = self.client.post(
+            self.signup_url,
+            self.test_user,
+            format="json"
+        )
+        return res.data['user_id']
+
+    def follow_user(self, id, token):
+        """This method sends a follow request to a user"""
+        follow_url = reverse("authentication:follow", kwargs={'id': id})
+        response = self.client.post(
+            follow_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        return response
+
+    def unfollow_user(self, id, token):
+        """This method sends a follow request to a user"""
+        follow_url = reverse("authentication:follow", kwargs={'id': id})
+        response = self.client.delete(
+            follow_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        return response
+
+    def get_following(self, id, token):
+        """This method sends a follow request to a user"""
+        following_url = reverse("authentication:following",
+                                kwargs={'id': id})
+        response = self.client.get(
+            following_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        return response

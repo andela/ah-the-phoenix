@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView,
     PasswordResetView, PasswordUpdateView, VerifyAPIView,
-    SocialAuthenticationView
+    SocialAuthenticationView, FollowUnfollowAPIView, FollowerFollowingAPIView
 )
 
 urlpatterns = [
@@ -16,5 +16,9 @@ urlpatterns = [
          PasswordResetView.as_view(), name='reset_password'),
     path('users/password_update/<token>',
          PasswordUpdateView.as_view(), name='update_password'),
-    path('social/login/', SocialAuthenticationView.as_view(), name='social')
+    path('social/login/', SocialAuthenticationView.as_view(), name='social'),
+    path('profiles/<id>/follow/',
+         FollowUnfollowAPIView.as_view(), name="follow"),
+    path('profiles/<id>/following/',
+         FollowerFollowingAPIView.as_view(), name="following"),
 ]
