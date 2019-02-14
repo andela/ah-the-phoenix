@@ -22,6 +22,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register('articles', ArticleViewSet, base_name='articles')
 
+
 app_name = 'articles'
 urlpatterns = [
     path('api/v1/', include(('authors.apps.articles.urls',

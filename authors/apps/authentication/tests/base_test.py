@@ -33,6 +33,13 @@ class BaseTest(APITestCase):
                 "password": "jamesSavali1"
             }
         }
+        self.user2_data = {
+            "user": {
+                "username": "constantine",
+                "email": "emporer@gmail.com",
+                "password": "aC34##myndd"
+            }
+        }
 
         self.user_data_duplicate_username = {
             "user": {
@@ -297,17 +304,17 @@ class BaseTest(APITestCase):
                                 user_details,
                                 format='json')
 
-    def authenticate_user(self):
+    def authenticate_user(self, user_auth):
         """Invoke the server by sending a post request to the signup url."""
 
         self.client.post(self.signup_url,
-                         self.auth_user_data,
+                         user_auth,
                          format='json')
-        user = User.objects.get(email=self.auth_user_data['user']['email'])
+        user = User.objects.get(email=user_auth['user']['email'])
         user.is_verified = True
         user.save()
         response = self.client.post(self.login_url,
-                                    self.auth_user_data,
+                                    user_auth,
                                     format='json')
         return response
 

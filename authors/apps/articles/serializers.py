@@ -70,8 +70,3 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ("article", "user_rating", "average_rating")
-
-        
-
-
-
