@@ -267,7 +267,7 @@ class FollowerFollowingSerializer(serializers.ModelSerializer):
     """Serializer that return username"""
     class Meta:
         model = User
-        fields = ('username', )
+        fields = ('id', 'username', )
 
 
 class FollowUnfollowSerializer(serializers.ModelSerializer):

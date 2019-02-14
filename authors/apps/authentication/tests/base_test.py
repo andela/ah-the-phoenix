@@ -285,6 +285,9 @@ class BaseTest(APITestCase):
             self.test_user,
             format="json"
         )
+        user = User.objects.get(email=self.test_user['user']['email'])
+        user.is_verified = True
+        user.save()
         return res.data['user_id']
 
     def follow_user(self, id, token):

@@ -17,7 +17,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authors.apps.authentication.models import User
-from authors.apps.authentication.utils import Utils
 from social_core.backends.oauth import BaseOAuth1, BaseOAuth2
 from social_core.exceptions import MissingBackend
 from social_django.utils import load_backend, load_strategy
@@ -297,17 +296,19 @@ class FollowUnfollowAPIView(generics.RetrieveUpdateDestroyAPIView):
                 'error': "User not found"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        follower = User.objects.get(pk=request.user.id)
+        if not to_be_followed.is_verified:
+            return Response({
+                'error': "User not verified"
+            }, status=status.HTTP_404_NOT_FOUND)
 
-        if follower == to_be_followed:
+        if request.user == to_be_followed:
             message = {
                 "error": "You cannot follow yourself"
             }
             return Response(message, status=status.HTTP_406_NOT_ACCEPTABLE)
-        # import pdb; pdb.set_trace()
 
         try:
-            already_followed = follower.following.filter(pk=id).exists()
+            already_followed = request.user.following.filter(pk=id).exists()
             if already_followed:
                 return Response({
                     'error': 'You already follow this user'
@@ -320,10 +321,10 @@ class FollowUnfollowAPIView(generics.RetrieveUpdateDestroyAPIView):
             },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        follower.following.add(to_be_followed)
-        follower.save()
+        request.user.following.add(to_be_followed)
+        request.user.save()
 
-        serializer = FollowUnfollowSerializer(to_be_followed)
+        serializer = FollowUnfollowSerializer(request.user)
         message = {
             "message": "Profile successfully followed",
             "user": serializer.data
@@ -336,7 +337,7 @@ class FollowUnfollowAPIView(generics.RetrieveUpdateDestroyAPIView):
         request and the user with the username passed
         """
         try:
-            to_be_unfollowed = User.objects.get(pk=id)
+            User.objects.get(pk=id)
         except Exception:
             return Response({
                 'error': "User not found"
@@ -354,7 +355,7 @@ class FollowUnfollowAPIView(generics.RetrieveUpdateDestroyAPIView):
             )
 
         follower.following.remove(id)
-        serializer = FollowUnfollowSerializer(to_be_unfollowed)
+        serializer = FollowUnfollowSerializer(follower)
         message = {
             "message": "Profile successfully unfollowed",
             "user": serializer.data
@@ -383,22 +384,15 @@ class FollowerFollowingAPIView(generics.ListAPIView):
 
         if self.get_queryset() is not None:
 
-            followed_friend_objects = self.get_queryset()["followed"]
-            following_friend_objects = self.get_queryset()["followers"]
-
-            users_followed = [u for u in followed_friend_objects]
-            users_following = [u for u in following_friend_objects]
+            following_dict = self.get_queryset()
 
             follower_serializer = FollowerFollowingSerializer(
-                users_following, many=True)
+                following_dict['followed'], many=True)
             following_serializer = FollowerFollowingSerializer(
-                users_followed, many=True)
+                following_dict['followers'], many=True)
 
-            followers = Utils().create_following_list(follower_serializer.data)
-            following = Utils().create_following_list(
-                following_serializer.data)
             message = {
-                "Followers": followers,
-                "Following": following
+                "Followers": follower_serializer.data,
+                "Following": following_serializer.data
             }
             return Response(message, status=status.HTTP_200_OK)

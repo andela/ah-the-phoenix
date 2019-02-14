@@ -140,7 +140,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             "email": self.email,
             "username": self.username,
             "exp": datetime.utcnow()
-            + timedelta(minutes=60*3)
+            + timedelta(hours=3)
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token.decode('utf-8')
