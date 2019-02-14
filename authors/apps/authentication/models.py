@@ -77,7 +77,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # falsed.
     is_staff = models.BooleanField(default=False)
 
-    # The 'is_verified' is used to determine if a users account is verified
+    # The 'is_verified' flag is used to determine whether a users account is
+    # verified
     # By default the user it is False until their account email is verfied
     is_verified = models.BooleanField(default=False)
 
@@ -86,6 +87,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # A timestamp reprensenting when this object was last updated.
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Id for users a user is following
+    following = models.ManyToManyField('User', related_name='followers')
 
     # More fields required by Django when specifying a custom user model.
 
@@ -132,11 +136,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def generate_jwt_token(self):
         """ Generates a token that expires in 24hrs """
-        time = datetime.now() + timedelta(hours=24)
         token = jwt.encode({
             "email": self.email,
             "username": self.username,
-            "exp": int(time.strftime('%s'))
+            "exp": datetime.utcnow()
+            + timedelta(hours=3)
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token.decode('utf-8')

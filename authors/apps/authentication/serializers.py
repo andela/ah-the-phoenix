@@ -1,5 +1,4 @@
 from django.contrib.auth import authenticate
-import re       # noqa F401
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -57,9 +56,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'required': 'please ensure you have inserted a password',
             'min_length': 'password cannot be less than 8 characters',
             'max-length': 'password cannot be greater than 50 characters',
-            'invalid': 'please consider a password that has a number, '
-                       'an uppercase letter, lowercase letter and'
-                       ' a special character',
+            'invalid': 'please consider a password that has a number, an '
+            'uppercase letter, lowercase letter and a special character',
         }
     )
     email = serializers.EmailField(
@@ -101,7 +99,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         # List all of the fields that could possibly be included in a request
         # or response, including fields specified explicitly above.
-        fields = ['email', 'username', 'password', 'token']
+        fields = ['id', 'email', 'username', 'password', 'token']
 
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
@@ -263,3 +261,31 @@ class SocialAuthenticationSerializer(serializers.Serializer):
         max_length=4096, trim_whitespace=True, required=True)
     access_token_secret = serializers.CharField(
         max_length=4096, trim_whitespace=True, required=False)
+
+
+class FollowerFollowingSerializer(serializers.ModelSerializer):
+    """Serializer that return username"""
+    class Meta:
+        model = User
+        fields = ('id', 'username', )
+
+
+class FollowUnfollowSerializer(serializers.ModelSerializer):
+    """Serializer that returns id, username, followers, following"""
+
+    followers_total = serializers.SerializerMethodField()
+    following_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'username', 'followers_total', 'following_total',
+        )
+
+    def get_followers_total(self, obj):
+        """Returns total number of followers"""
+        return obj.followers.count()
+
+    def get_following_total(self, obj):
+        """Returns number of users one is following"""
+        return obj.following.count()

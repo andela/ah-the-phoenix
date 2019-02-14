@@ -1,6 +1,5 @@
 import os
 import jwt
-from rest_framework.views import status  # noqa F401
 from datetime import datetime, timedelta
 from django.urls import reverse
 from django.conf import settings
@@ -208,6 +207,21 @@ class BaseTest(APITestCase):
             "confirm_password": "jamesSavali8@"
         }
 
+        self.signup_data = {
+            "user": {
+                "email": "sam@gmail.com",
+                "username": "Sam",
+                "password": "Sam123@#"
+            }
+        }
+        self.test_user = {
+            "user": {
+                "email": "kimm@gmail.com",
+                "username": "kim",
+                "password": "Kim123@#"
+            }
+        }
+
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
@@ -235,17 +249,16 @@ class BaseTest(APITestCase):
         return response
 
     def send_reset_password_email(self, user_details):
-        """
-        Invoke the server by sending a post request to the password reset url.
-        """
+        """Invoke the server by sending a post request to the password reset
+         url."""
         return self.client.post(self.password_reset_url,
                                 user_details,
                                 format='json')
 
     @staticmethod
     def create_url():
-        """Create a url with the token, to redirect the user to password
-        update."""
+        """Create a url with the token, to redirect the user
+         to password update."""
         token = jwt.encode({"email": "wearethephoenix34@gmail.com",
                             "iat": datetime.now(),
                             "exp": datetime.utcnow() + timedelta(minutes=5)},
@@ -254,3 +267,53 @@ class BaseTest(APITestCase):
         reset_url = reverse("authentication:update_password",
                             kwargs={"token": token})
         return reset_url
+
+    def signup_user(self):
+        """This method registers new user and returns a token"""
+        response = self.client.post(
+            self.signup_url,
+            self.signup_data,
+            format="json"
+        )
+        token = response.data["user_info"]["token"]
+        return token
+
+    def create_test_user(self):
+        """This method registers a test user for testcases"""
+        res = self.client.post(
+            self.signup_url,
+            self.test_user,
+            format="json"
+        )
+        user = User.objects.get(email=self.test_user['user']['email'])
+        user.is_verified = True
+        user.save()
+        return res.data['user_id']
+
+    def follow_user(self, id, token):
+        """This method sends a follow request to a user"""
+        follow_url = reverse("authentication:follow", kwargs={'id': id})
+        response = self.client.post(
+            follow_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        return response
+
+    def unfollow_user(self, id, token):
+        """This method sends a follow request to a user"""
+        follow_url = reverse("authentication:follow", kwargs={'id': id})
+        response = self.client.delete(
+            follow_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        return response
+
+    def get_following(self, id, token):
+        """This method sends a follow request to a user"""
+        following_url = reverse("authentication:following",
+                                kwargs={'id': id})
+        response = self.client.get(
+            following_url,
+            HTTP_AUTHORIZATION=f'token {token}'
+        )
+        return response
