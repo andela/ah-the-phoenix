@@ -1,7 +1,7 @@
 import jwt
 
 from datetime import datetime, timedelta
-
+from cloudinary.models import CloudinaryField
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -72,6 +72,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     # but we can still analyze the data.
     is_active = models.BooleanField(default=True)
 
+    bio = models.TextField(blank=True)
+
+    image = CloudinaryField(
+        "image",
+        default="https://res.cloudinary.com/dw675k0f5/image/upload/v1542660993/sample.jpg")  # noqa
+
     # The `is_staff` flag is expected by Django to determine who can and cannot
     # log into the Django admin site. For most users, this flag will always be
     # falsed.
@@ -108,7 +114,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         This string is used when a `User` is printed in the console.
         """
-        return self.email
+        return self.username
 
     @property
     def token(self):

@@ -1,8 +1,8 @@
 import os
-import jwt
 from datetime import datetime, timedelta
-from django.conf import settings
+import jwt
 from django.urls import reverse
+from django.conf import settings
 from rest_framework.test import APITestCase
 from ..models import User
 
@@ -18,6 +18,7 @@ class BaseTest(APITestCase):
         self.login_url = reverse('authentication:user_login')
         self.password_reset_url = reverse('authentication:reset_password')
         self.articles_url = reverse('articles:articles-all')
+        self.profile_url = reverse('authentication:get_profiles')
         self.auth_user_data = {
             "user": {
                 "email": "pherndegz@gmail.com",
@@ -254,6 +255,33 @@ class BaseTest(APITestCase):
             }
         }
 
+        self.email_forgot_password = {
+            "email": "wearethephoenix34@gmail.com"
+        }
+
+        self.empty_email_field = {
+            "email": ""
+        }
+
+        self.passwords = {
+            "password": "jamesSavali8@",
+            "confirm_password": "jamesSavali8@"
+        }
+
+        self.profile = {
+            'profile': {
+                "bio": "i am an introvert",
+                "image": "https://workhound.com/05/placeholder-profile-pic.png"
+            }
+        }
+
+        self.new_profile = {
+            'profile': {
+                "bio": "i am an extrovert",
+                "image": "https://workhound.com"
+            }
+        }
+
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
@@ -262,6 +290,9 @@ class BaseTest(APITestCase):
 
     def login_a_user(self, user_details):
         """Invoke the server by sending a post request to the login url."""
+        user = User.objects.get(email=self.user_data['user']['email'])
+        user.is_verified = True
+        user.save()
         return self.client.post(self.login_url,
                                 user_details,
                                 format='json')
@@ -349,3 +380,20 @@ class BaseTest(APITestCase):
             HTTP_AUTHORIZATION=f'token {token}'
         )
         return response
+
+    def get_single_profile_url(self):
+        """Return a user's profile url"""
+        self.signup_a_user(self.user_data)
+        email = self.user_data['user']['email']
+        user_object = User.objects.get(email=email)
+        user_id = str(user_object.id)
+        url = self.profile_url + user_id + "/"
+        return url
+
+    def verify_user(self, uri):
+        """Signup, login and get a user's profile"""
+        self.signup_a_user(self.user_data)
+        user = self.login_a_user(self.user_login_data)
+        token = user.data["token"]
+        return self.client.get(uri,
+                               HTTP_AUTHORIZATION=f'token {token}')

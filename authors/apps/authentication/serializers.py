@@ -46,33 +46,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     # Ensure passwords are at least 8 characters long, no longer than 128
     # characters, and can not be read by the client.
-    password = serializers.RegexField(
-        regex=("^(?=.{8,}$)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*"),
-        max_length=128,
-        min_length=8,
-        write_only=True,
-        required=True,
-        error_messages={
-            'required': 'please ensure you have inserted a password',
-            'min_length': 'password cannot be less than 8 characters',
-            'max-length': 'password cannot be greater than 50 characters',
-            'invalid': 'please consider a password that has a number, an '
-            'uppercase letter, lowercase letter and a special character',
-        }
-    )
-    email = serializers.EmailField(
-        required=True,
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(),
-                message='user with this email already exists.'
-            )
-        ],
-        error_messages={
-            'required': 'Ensure the email is inserted',
-            'invalid': 'Enter a valid email address.'
-        }
-    )
+
+    email = email_validator()
     username = serializers.RegexField(
         regex=("^[A-Za-z]*$"),
         max_length=128,
@@ -91,6 +66,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'invalid': 'username is invalid',
         }
     )
+    password = password_validator()
 
     # The client should not be able to send a token along with a registration
     # request. Making `token` read-only handles that for us.
@@ -254,6 +230,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SocialAuthenticationSerializer(serializers.Serializer):
+
     """Takes in access token, provider, and access_token_secret"""
 
     client_provider = serializers.CharField(max_length=255, required=True)
@@ -289,3 +266,18 @@ class FollowUnfollowSerializer(serializers.ModelSerializer):
     def get_following_total(self, obj):
         """Returns number of users one is following"""
         return obj.following.count()
+
+
+class ProfilesSerializer(serializers.ModelSerializer):
+
+    """Serialize user profile data"""
+
+    username = serializers.CharField(read_only=True)
+    bio = serializers.CharField(allow_blank=True, required=False)
+    image = serializers.ImageField(default=None)
+
+    class Meta:
+        model = User
+        fields = ('username', 'bio', 'image',
+                  'created_at', 'updated_at')
+        read_only_fields = ('username', 'created_at', 'updated_at',)

@@ -1,6 +1,7 @@
 from rest_framework.views import status
 
 from authors.apps.authentication.tests.base_test import BaseTest
+from ..models import User
 
 
 class TestLogin(BaseTest):
@@ -57,7 +58,12 @@ class TestLogin(BaseTest):
     def test_login_with_unverified_email(self):
         """Test for a login with an unverified email"""
         self.signup_a_user(self.user_data)
-        response = self.login_a_user(self.user_data)
+        user = User.objects.get(email=self.user_data['user']['email'])
+        user.is_verified = False
+        user.save()
+        response = self.client.post(self.login_url,
+                                    self.user_data,
+                                    format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["errors"]['error'], [
