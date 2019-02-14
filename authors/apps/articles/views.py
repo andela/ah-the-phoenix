@@ -1,14 +1,30 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
+from rest_framework.generics import (ListAPIView, CreateAPIView,
+                                     RetrieveUpdateDestroyAPIView,
+                                     GenericAPIView)
+from rest_framework.exceptions import NotFound, ValidationError
+from django.db.models import Avg
 
-from .models import Article
-from .serializers import ArticleSerializer
+from .serializers import ArticleSerializer, RatingSerializer
 from .renderers import ArticleJsonRenderer
+from .models import Article, Rating
 
+
+def get_article(slug):
+
+    try:
+        article = Article.objects.get(slug=slug)
+
+    except Exception:
+        return Response(
+            {"error": "Article not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    return article
 
 class ArticleViewSet(viewsets.ViewSet):
     """
@@ -22,6 +38,7 @@ class ArticleViewSet(viewsets.ViewSet):
     serializer_class = ArticleSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     renderer_classes = (ArticleJsonRenderer,)
+
 
     def list(self, request):
         queryset = Article.objects.all()
@@ -78,10 +95,98 @@ class ArticleViewSet(viewsets.ViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, pk=None):
 
+    def destroy(self, request, pk=None):
+        
         queryset = Article.objects.all()
         article = get_object_or_404(queryset, pk=pk)
         article.delete()
-        return Response({"message": "article deleted successfully"},
-                        status=status.HTTP_200_OK)
+        return Response({"message": "article deleted successfully"}, 
+                        status=status.HTTP_204_NO_CONTENT)
+        
+
+class RatingAPIView(GenericAPIView):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
+    permission_class = (IsAuthenticatedOrReadOnly,)
+
+    def get_article(self, slug):
+        """Returns an article based on slug."""
+        article = Article.objects.all().filter(slug=slug).first()
+        return article
+
+    def get_rating(self, user, article):
+        """Returns an articles's rating."""
+        try:
+            return Rating.objects.get(user=user, article=article)
+        except Rating.DoesNotExist:
+            raise NotFound(
+                detail={"rating": "You have not yet rated this article"}
+            )
+
+    def post(self, request, slug):
+        """POST request to rate an article."""
+        rating = request.data
+        article = self.get_article(slug)
+
+        if not article:
+            raise ValidationError(
+                detail={'message': 'Article not found'}
+            )
+
+        if request.user.id == article.author.id:
+            return Response({
+                "message": "You cannot rate your own article"
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            current_rating = Rating.objects.get(
+                user = request.user.id,
+                article = article.id
+            )
+            serializer = self.serializer_class(
+            current_rating, data = rating)
+        except Rating.DoesNotExist:
+            serializer = self.serializer_class(data = rating)
+
+        serializer.is_valid(raise_exception = True)
+        serializer.save(user = request.user, article = article)
+
+        return Response({
+            'message': 'Rating submitted sucessfully',
+            'data': serializer.data
+        }, status = status.HTTP_201_CREATED)
+
+    def get(self, request, slug):
+        """Get request for an article ratings."""
+        article = self.get_article(slug)
+        rating = None
+
+        if not article:
+            raise ValidationError(
+                detail={'message': 'Article not found'}
+            )
+
+        if request.user.is_authenticated:
+            rating = self.get_rating(user=request.user, article=article)
+
+        if rating is None:
+            avg = Rating.objects.filter(
+                article=article).aggregate(Avg('user_rating')
+                )
+            average_rating = avg['user_rating__avg']
+            if avg["user_rating__avg"] is None:
+                average_rating = 0
+                
+            if request.user.is_authenticated is False:
+                return Response({
+                    'article': article.slug,
+                    'average_rating': average_rating,
+                    'user_rating': 'Kindly login to rate an article'
+                }, status=status.HTTP_200_OK)
+
+        serializer = self.serializer_class(rating)
+        return Response({
+            'message': 'article rating',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)

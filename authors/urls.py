@@ -15,7 +15,12 @@ Including another URLconf
 from django.urls import include, path
 from django.contrib import admin
 
+from authors.apps.articles.views import ArticleViewSet
 from .swagger import schema_view
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register('articles', ArticleViewSet, base_name='articles')
 
 app_name = 'articles'
 urlpatterns = [

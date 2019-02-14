@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'cloudinary',
     'social_django',
-
+    'cloudinary',
 
     'authors.apps.authentication',
     'authors.apps.core',
