@@ -266,6 +266,8 @@ class FollowUnfollowSerializer(serializers.ModelSerializer):
     def get_following_total(self, obj):
         """Returns number of users one is following"""
         return obj.following.count()
+
+
 class ProfilesSerializer(serializers.ModelSerializer):
 
     """Serialize user profile data"""
@@ -276,5 +278,6 @@ class ProfilesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'bio', 'image', 'created_at', 'updated_at')
+        fields = ('username', 'bio', 'image',
+                  'created_at', 'updated_at')
         read_only_fields = ('username', 'created_at', 'updated_at',)

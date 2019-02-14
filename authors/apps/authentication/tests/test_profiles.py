@@ -14,7 +14,7 @@ class ProfilesTestCase(BaseTest):
 
     def test_get_a_non_existent_profile(self):
         """Test getting of a user profile that doesnt exist"""
-        url = self.profile_url + f"ja0mes" + "/"
+        url = self.profile_url + str(2555) + "/"
         response = self.verify_user(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -30,8 +30,23 @@ class ProfilesTestCase(BaseTest):
         user = self.login_a_user(self.user_login_data)
         token = user.data["token"]
         url = self.get_single_profile_url()
-        response = self.client.put(url,
-                                   HTTP_AUTHORIZATION=f'token {token}',
-                                   data=self.new_profile,
-                                   format='json')
+        response = self.client.patch(url,
+                                     HTTP_AUTHORIZATION=f'token {token}',
+                                     data=self.new_profile,
+                                     format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_that_a_user_cannot_edit_others_profiles(self):
+        """
+        Test whether a user cannot successfully edit
+        another user's profile
+        """
+        self.signup_a_user(self.user_data)
+        user = self.login_a_user(self.user_login_data)
+        token = user.data["token"]
+        url = self.profile_url + str(3) + "/"
+        response = self.client.patch(url,
+                                     HTTP_AUTHORIZATION=f'token {token}',
+                                     data=self.new_profile,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

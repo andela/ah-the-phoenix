@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import jwt
 from django.urls import reverse
 from django.conf import settings
-from django.urls import reverse
 from rest_framework.test import APITestCase
 from ..models import User
 
@@ -253,6 +252,9 @@ class BaseTest(APITestCase):
                 "email": "kimm@gmail.com",
                 "username": "kim",
                 "password": "Kim123@#"
+            }
+        }
+
         self.email_forgot_password = {
             "email": "wearethephoenix34@gmail.com"
         }
@@ -378,9 +380,14 @@ class BaseTest(APITestCase):
             HTTP_AUTHORIZATION=f'token {token}'
         )
         return response
+
     def get_single_profile_url(self):
         """Return a user's profile url"""
-        url = self.profile_url + f"{self.user_data['user']['username']}" + "/"
+        self.signup_a_user(self.user_data)
+        email = self.user_data['user']['email']
+        user_object = User.objects.get(email=email)
+        user_id = str(user_object.id)
+        url = self.profile_url + user_id + "/"
         return url
 
     def verify_user(self, uri):

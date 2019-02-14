@@ -48,11 +48,7 @@ INSTALLED_APPS = [
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.base',
-<<<<<<< HEAD
     'authors.apps.articles'
-=======
-    'cloudinary',
->>>>>>> feature(profiles): enable a user to create a profile
 ]
 
 MIDDLEWARE = [

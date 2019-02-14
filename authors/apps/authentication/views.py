@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from rest_framework.generics import (
-    RetrieveUpdateAPIView, CreateAPIView, 
-    UpdateAPIView, ListAPIView, RetrieveUpdateAPIView)
+    RetrieveUpdateAPIView, CreateAPIView,
+    UpdateAPIView, ListAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -401,16 +401,18 @@ class FollowerFollowingAPIView(generics.ListAPIView):
                 "Following": following_serializer.data
             }
             return Response(message, status=status.HTTP_200_OK)
+
+
 class ProfileRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
     permission_classes = (IsAuthenticated, )
     renderer_classes = (UserJSONRenderer,)
     serializer_class = ProfilesSerializer
 
-    def get(self, request, username, *args, **kwargs):
+    def get(self, request, pk, *args, **kwargs):
         try:
             profile = User.objects.get(
-                username=username
+                pk=pk
             )
         except Exception:
             raise NotFound("The requested profile was not found")
@@ -419,8 +421,8 @@ class ProfileRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, username):
-        if request.user.username != username:
+    def patch(self, request, pk):
+        if str(request.user.id) != pk:
             response = {
                 "message": "You don't have permission to edit this profile"}
             return Response(response, status=status.HTTP_403_FORBIDDEN)

@@ -2,11 +2,8 @@ from django.urls import path
 from .views import (
     LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView,
     PasswordResetView, PasswordUpdateView, VerifyAPIView,
-<<<<<<< HEAD
-    SocialAuthenticationView, FollowUnfollowAPIView, FollowerFollowingAPIView
-=======
-    SocialAuthenticationView, ProfileRetrieveUpdateAPIView, ProfileGetAPIView
->>>>>>> feature(profiles): enable a user to create a profile
+    SocialAuthenticationView, FollowUnfollowAPIView, FollowerFollowingAPIView,
+    ProfileRetrieveUpdateAPIView, ProfileGetAPIView
 )
 
 urlpatterns = [
@@ -25,6 +22,6 @@ urlpatterns = [
     path('profiles/<id>/following/',
          FollowerFollowingAPIView.as_view(), name="following"),
     path('profiles/', ProfileGetAPIView.as_view(), name='get_profiles'),
-    path('profiles/<str:username>/',
+    path('profiles/<pk>/',
          ProfileRetrieveUpdateAPIView.as_view(), name='user_profile')
 ]
