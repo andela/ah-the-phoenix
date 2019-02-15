@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import ValidationError
 from django.db.models import Avg
 
 from .serializers import ArticleSerializer, RatingSerializer
@@ -111,15 +111,6 @@ class RatingAPIView(GenericAPIView):
         """Returns an article based on slug."""
         article = Article.objects.all().filter(slug=slug).first()
         return article
-
-    def get_rating(self, user, article):
-        """Returns an articles's rating."""
-        try:
-            return Rating.objects.get(user=user, article=article)
-        except Rating.DoesNotExist:
-            raise NotFound(
-                detail={"error": "You have not yet rated this article"}
-            )
 
     def post(self, request, slug):
         """POST request to rate an article."""
