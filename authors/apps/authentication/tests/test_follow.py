@@ -29,7 +29,8 @@ class FollowUnfollowTestCase(BaseTest):
     def test_follow_yourself(self):
         """Test whether API user can follow oneself"""
         token = self.authenticate_user(self.auth_user_data).data["token"]
-        user = User.objects.get(email=self.authenticate_user(self.auth_user_data).data["email"])
+        user = User.objects.get(email=self.authenticate_user(
+            self.auth_user_data).data["email"])
         response = self.follow_user(user.id, token)
         self.assertEqual(response.data['error'],
                          "You cannot follow yourself")

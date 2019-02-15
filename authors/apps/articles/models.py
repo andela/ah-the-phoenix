@@ -11,9 +11,10 @@ class Article(models.Model):
     description = models.CharField(max_length=400, blank=False)
     body = models.TextField(blank=False)
     image = CloudinaryField(blank=True, null=True)
-    slug = models.SlugField(db_index=True, max_length=1000, 
+    slug = models.SlugField(db_index=True, max_length=1000,
                             unique=True, blank=True, primary_key=True)
-    author = models.ForeignKey(User, related_name='articles', on_delete=models.CASCADE,
+    author = models.ForeignKey(User, related_name='articles',
+                               on_delete=models.CASCADE,
                                blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,6 +39,7 @@ class Article(models.Model):
         if not self.slug:
             self.slug = self.generate_slug()
         super().save(*args, **kwargs)
+
 
 class Rating(models.Model):
     """The rating model"""

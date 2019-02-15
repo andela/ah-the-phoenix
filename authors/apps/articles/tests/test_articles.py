@@ -2,6 +2,7 @@ from authors.apps.authentication.tests.base_test import BaseTest
 
 from rest_framework import status
 
+
 class TestArticles(BaseTest):
     def test_create_article(self):
         """users should be able to create an article"""
@@ -138,9 +139,6 @@ class TestArticles(BaseTest):
         new_slug = response.data['slug']
         response2 = self.client.delete(self.articles_url + new_slug + '/',
                                        HTTP_AUTHORIZATION=f'token {token}')
-        print(response2.data["message"])
-        print("HERE")
-        self.assertEqual(response2.status_code, status.HTTP_200_OK)
         message = response2.data["message"]
         self.assertEqual(message,
                          "article deleted successfully")

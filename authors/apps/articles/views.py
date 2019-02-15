@@ -3,9 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
-from rest_framework.generics import (ListAPIView, CreateAPIView,
-                                     RetrieveUpdateDestroyAPIView,
-                                     GenericAPIView)
+from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 from django.db.models import Avg
 
@@ -26,6 +24,7 @@ def get_article(slug):
         )
     return article
 
+
 class ArticleViewSet(viewsets.ViewSet):
     """
     Example empty viewset demonstrating the standard
@@ -38,7 +37,6 @@ class ArticleViewSet(viewsets.ViewSet):
     serializer_class = ArticleSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     renderer_classes = (ArticleJsonRenderer,)
-
 
     def list(self, request):
         queryset = Article.objects.all()
@@ -95,15 +93,14 @@ class ArticleViewSet(viewsets.ViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
     def destroy(self, request, pk=None):
-        
+
         queryset = Article.objects.all()
         article = get_object_or_404(queryset, pk=pk)
         article.delete()
-        return Response({"message": "article deleted successfully"}, 
+        return Response({"message": "article deleted successfully"},
                         status=status.HTTP_204_NO_CONTENT)
-        
+
 
 class RatingAPIView(GenericAPIView):
     queryset = Rating.objects.all()
@@ -121,7 +118,7 @@ class RatingAPIView(GenericAPIView):
             return Rating.objects.get(user=user, article=article)
         except Rating.DoesNotExist:
             raise NotFound(
-                detail={"rating": "You have not yet rated this article"}
+                detail={"error": "You have not yet rated this article"}
             )
 
     def post(self, request, slug):
@@ -133,6 +130,10 @@ class RatingAPIView(GenericAPIView):
             raise ValidationError(
                 detail={'message': 'Article not found'}
             )
+        if request.user.is_authenticated is False:
+            return Response({
+                "message": "Please login to rate an article"
+            }, status=status.HTTP_403_FORBIDDEN)
 
         if request.user.id == article.author.id:
             return Response({
@@ -141,21 +142,21 @@ class RatingAPIView(GenericAPIView):
 
         try:
             current_rating = Rating.objects.get(
-                user = request.user.id,
-                article = article.id
+                user=request.user.id,
+                article=article
             )
             serializer = self.serializer_class(
-            current_rating, data = rating)
+                current_rating, data=rating)
         except Rating.DoesNotExist:
-            serializer = self.serializer_class(data = rating)
+            serializer = self.serializer_class(data=rating)
 
-        serializer.is_valid(raise_exception = True)
-        serializer.save(user = request.user, article = article)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user, article=article)
 
         return Response({
             'message': 'Rating submitted sucessfully',
             'data': serializer.data
-        }, status = status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED)
 
     def get(self, request, slug):
         """Get request for an article ratings."""
@@ -168,16 +169,19 @@ class RatingAPIView(GenericAPIView):
             )
 
         if request.user.is_authenticated:
-            rating = self.get_rating(user=request.user, article=article)
+            try:
+                rating = Rating.objects.get(user=request.user, article=article)
+            except Rating.DoesNotExist:
+                rating = None
 
         if rating is None:
             avg = Rating.objects.filter(
                 article=article).aggregate(Avg('user_rating')
-                )
+                                           )
             average_rating = avg['user_rating__avg']
             if avg["user_rating__avg"] is None:
                 average_rating = 0
-                
+
             if request.user.is_authenticated is False:
                 return Response({
                     'article': article.slug,
