@@ -164,6 +164,8 @@ REST_FRAMEWORK = {
     )
 }
 
+django_heroku.settings(locals())
+
 #Configurations for the smtp mail server
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
