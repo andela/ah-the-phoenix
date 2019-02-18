@@ -28,10 +28,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         }
     )
 
-    def retrieve_author(self, obj):
-        """retrieve the author profile"""
-        pass
-
     class Meta:
         model = Article
         fields = ('slug', 'title', 'description',
