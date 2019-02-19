@@ -14,6 +14,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_text
 from rest_framework import generics, status
 from rest_framework.exceptions import NotFound
 
@@ -31,7 +33,8 @@ from .serializers import (EmailSerializer, LoginSerializer,
                           SocialAuthenticationSerializer, UserSerializer,
                           ProfilesSerializer,
                           FollowerFollowingSerializer,
-                          FollowUnfollowSerializer)
+                          FollowUnfollowSerializer,
+                          SubscriptionSerializer)
 
 
 class RegistrationAPIView(APIView):
@@ -446,3 +449,47 @@ class ProfileGetAPIView(ListAPIView):
         queryset = self.get_queryset()
         serializer = ProfilesSerializer(queryset, many=True)
         return Response({"Profiles": serializer.data})
+
+
+class SubscribeAPIView(APIView):
+    """Allows user to subscribe or unsubscribe from notifications"""
+
+    permission_classes = (AllowAny,)
+    serializer_class = SubscriptionSerializer
+
+    def put(self, request):
+        user = User.objects.get(email=request.user.email)
+        if not user.get_notifications:
+            user.get_notifications = True
+            user.save()
+            return Response({
+                "message": "You have successfully subscribed"
+            }, status=status.HTTP_200_OK)
+
+        else:
+            return Response({
+                "Message": "You are already subscribed"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UnsubscribeAPIView(APIView):
+    "Allows user to unsubscribe to notifications"
+
+    permission_classes = (AllowAny,)
+
+    serializer_class = SubscriptionSerializer
+
+    def put(self, request, uuid):
+        username = force_text(urlsafe_base64_decode(uuid))
+        user = User.objects.get(username=username)
+        if user.get_notifications:
+            user.get_notifications = False
+            user.save()
+            return Response({
+                "message": "You have successfully unsubscribed"
+            }, status=status.HTTP_200_OK)
+
+        else:
+            return Response({
+                "Message": "You are not subscribed"
+            }, status=status.HTTP_400_BAD_REQUEST)

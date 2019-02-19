@@ -97,6 +97,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Id for users a user is following
     following = models.ManyToManyField('User', related_name='followers')
 
+    # A boolean field wheteher a user wants notofications or not
+    get_notifications = models.BooleanField(default=True)
+
     # More fields required by Django when specifying a custom user model.
 
     # The `USERNAME_FIELD` property tells us which field we will use to log in.

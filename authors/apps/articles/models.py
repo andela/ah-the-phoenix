@@ -1,8 +1,17 @@
+import os
 from django.db import models
 from django.utils.text import slugify
 
 from authors.apps.authentication.models import User
 from cloudinary.models import CloudinaryField
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from notifications.signals import notify
+
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 
 class Article(models.Model):
@@ -107,3 +116,43 @@ class Favorite(models.Model):
         Article, related_name="favorited_article", on_delete=models.CASCADE)
     user = models.ForeignKey(
         User, related_name="favoriter", on_delete=models.CASCADE)
+
+
+@receiver(post_save, sender=Article)
+def send_notifications_to_all_users(sender,
+                                    instance,
+                                    created, *args, **kwargs):
+    """Create a Signal that sends email to all users that follow the author.
+     Arguments:
+        sender {[type]} -- [Instance of ]
+        created {[type]} -- [If the article is posted.]
+    """
+
+    if instance and created:
+        users_followers = instance.author.followers.all()
+
+        link = f"""{os.getenv("HEROKU_BACKEND_URL")}/api/v1/articles/' + \
+            {instance.slug}'
+            """
+        for user in users_followers:
+            if user.get_notifications:
+                uuid = urlsafe_base64_encode(force_bytes(user)
+                                             ).decode("utf-8")
+                subscription = f'{os.getenv("HEROKU_BACKEND_URL")}/api/' +\
+                    'v1/users/' +\
+                    f'unsubscribe/{uuid}/'
+                sender = os.getenv('EMAIL_HOST_USER')
+                email = user.email
+                email_subject = "Author's Haven Email Notification"
+                message = render_to_string('create_article.html', {
+                    'title': email_subject,
+                    'username': user.username,
+                    'link': link,
+                    'subscription': subscription
+                })
+
+                send_mail(email_subject, '', sender, [
+                    email, ], html_message=message)
+                notify.send(instance.author, recipient=user,
+                            verb='A user you follow has a new post',
+                            action_object=instance)
