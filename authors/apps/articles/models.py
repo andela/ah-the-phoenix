@@ -53,7 +53,7 @@ class Rating(models.Model):
         related_name="rated_article",
         on_delete=models.CASCADE
     )
-    user_rating = models.FloatField()
+    user_rating = models.FloatField(default=0)
 
     def __str__(self):
         return self.user_rating

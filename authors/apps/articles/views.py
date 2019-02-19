@@ -105,26 +105,18 @@ class ArticleViewSet(viewsets.ViewSet):
 class RatingAPIView(GenericAPIView):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
-    permission_class = (IsAuthenticatedOrReadOnly,)
-
-    def get_article(self, slug):
-        """Returns an article based on slug."""
-        article = Article.objects.all().filter(slug=slug).first()
-        return article
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    # renderer_classes = (RatingJsonRenderer,)
 
     def post(self, request, slug):
         """POST request to rate an article."""
         rating = request.data
-        article = self.get_article(slug)
+        article = get_article(slug)
 
         if not article:
             raise ValidationError(
                 detail={'message': 'Article not found'}
             )
-        if request.user.is_authenticated is False:
-            return Response({
-                "message": "Please login to rate an article"
-            }, status=status.HTTP_403_FORBIDDEN)
 
         if request.user.id == article.author.id:
             return Response({
@@ -151,15 +143,15 @@ class RatingAPIView(GenericAPIView):
 
     def get(self, request, slug):
         """Get request for an article ratings."""
-        article = self.get_article(slug)
         rating = None
-
-        if not article:
-            raise ValidationError(
-                detail={'message': 'Article not found'}
+        try:
+            article = Article.objects.get(slug=slug)
+        except Article.DoesNotExist:
+            return Response(
+                {"error": "Article not found"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
-        if request.user.is_authenticated:
             try:
                 rating = Rating.objects.get(user=request.user, article=article)
             except Rating.DoesNotExist:
@@ -177,7 +169,7 @@ class RatingAPIView(GenericAPIView):
                 return Response({
                     'article': article.slug,
                     'average_rating': average_rating,
-                    'user_rating': 'Kindly login to rate an article'
+                    'user_rating': 'login to rate the article'
                 }, status=status.HTTP_200_OK)
 
         serializer = self.serializer_class(rating)
