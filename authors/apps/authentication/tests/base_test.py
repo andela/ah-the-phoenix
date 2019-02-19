@@ -435,3 +435,51 @@ class BaseTest(APITestCase):
         token = user.data["token"]
         return self.client.get(uri,
                                HTTP_AUTHORIZATION=f'token {token}')
+
+    @staticmethod
+    def likes_article_url(pk):
+        """Return liking url."""
+        url = reverse('articles:like_article', args=[pk])
+        return url
+
+    @staticmethod
+    def dislikes_article_url(pk):
+        """Return disliking url."""
+        url = reverse('articles:dislike_article', args=[pk])
+        return url
+
+    def create_article(self):
+        """Create an article."""
+        token = self.authenticate_user().data['token']
+        article = self.client.post(self.articles_url,
+                                   self.article,
+                                   format='json',
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+        slug = article.data['slug']
+        return slug
+
+    def create_and_like_article(self):
+        """Create and like an article."""
+        token = self.authenticate_user().data['token']
+        article = self.client.post(self.articles_url,
+                                   self.article,
+                                   format='json',
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+        slug = article.data['slug']
+        return self.client.patch(BaseTest.likes_article_url(slug),
+                                 format='json',
+                                 HTTP_AUTHORIZATION=f'Token {token}'
+                                 )
+
+    def create_and_dislike_article(self):
+        """Create and dislike an article."""
+        token = self.authenticate_user().data['token']
+        article = self.client.post(self.articles_url,
+                                   self.article,
+                                   format='json',
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+        slug = article.data['slug']
+        return self.client.patch(BaseTest.dislikes_article_url(slug),
+                                 format='json',
+                                 HTTP_AUTHORIZATION=f'Token {token}'
+                                 )

@@ -97,7 +97,7 @@ class ArticleViewSet(viewsets.ViewSet):
         article = get_object_or_404(queryset, pk=pk)
         article.delete()
         return Response({"message": "article deleted successfully"},
-                        status=status.HTTP_204_NO_CONTENT)
+                        status=status.HTTP_200_OK)
 
 
 class RatingAPIView(GenericAPIView):
@@ -171,3 +171,55 @@ class RatingAPIView(GenericAPIView):
             'message': 'article rating',
             'data': serialized_data.data
         }, status=status.HTTP_200_OK)
+
+
+class LikeViewSet(viewsets.ViewSet):
+    serializer_class = ArticleSerializer
+    permissions = (IsAuthenticatedOrReadOnly,)
+
+    def partial_update(self, request, pk=None):
+        """Update likes field."""
+        try:
+            article = Article.objects.get(pk=pk)
+        except Exception:
+            raise NotFound("The article does not exist")
+        if article in Article.objects.filter(
+                disliked_by=request.user):
+            article.disliked_by.remove(request.user)
+        if article in Article.objects.filter(
+                liked_by=request.user):
+            article.liked_by.remove(request.user)
+        else:
+            article.liked_by.add(request.user)
+
+        serializer = self.serializer_class(article,
+                                           context={
+                                               'request': request},
+                                           partial=True)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+
+class DisLikeViewSet(viewsets.ViewSet):
+    serializer_class = ArticleSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def partial_update(self, request, pk=None):
+        """Update dislikes field."""
+        try:
+            article = Article.objects.get(pk=pk)
+        except Exception:
+            raise NotFound("The article does not exist")
+        if article in Article.objects.filter(
+                liked_by=request.user):
+            article.liked_by.remove(request.user)
+        if article in Article.objects.filter(
+                disliked_by=request.user):
+            article.disliked_by.remove(request.user)
+        else:
+            article.disliked_by.add(request.user)
+
+        serializer = self.serializer_class(article,
+                                           context={
+                                               'request': request},
+                                           partial=True)
+        return Response(serializer.data, status.HTTP_200_OK)

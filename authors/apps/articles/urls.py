@@ -10,5 +10,9 @@ urlpatterns = [
     path('articles/<pk>/', views.ArticleViewSet.as_view(
         {"get": "retrieve", "put": "update", "patch": "partial_update",
          "delete": "destroy"}), name='single-article'),
-    path('rate/<slug>/', views.RatingAPIView.as_view(), name='rating')
+    path('rate/<slug>/', views.RatingAPIView.as_view(), name='rating'),
+    path('articles/<pk>/like/', views.LikeViewSet.as_view(
+        {"patch": "partial_update"}), name='like_article'),
+    path('articles/<pk>/dislike/', views.DisLikeViewSet.as_view(
+        {"patch": "partial_update"}), name='dislike_article'),
 ]

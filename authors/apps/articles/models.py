@@ -16,6 +16,9 @@ class Article(models.Model):
     author = models.ForeignKey(User, related_name='articles',
                                on_delete=models.CASCADE,
                                blank=True, null=True)
+    liked_by = models.ManyToManyField(User, blank=True, related_name="likes")
+    disliked_by = models.ManyToManyField(
+        User, blank=True, related_name="dislikes")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
