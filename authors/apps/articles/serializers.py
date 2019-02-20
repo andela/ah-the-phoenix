@@ -50,8 +50,12 @@ class RatingSerializer(serializers.ModelSerializer):
             "required": "Please provide a rating between 1 and 5"
         }
     )
-    article = serializers.SerializerMethodField()
+    article_slug = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
+
+    def get_article_slug(self, obj):
+        """Returns the article's slug"""
+        return obj.article.slug
 
     def get_average_rating(self, obj):
         """Returns the average rating for an article"""
@@ -59,10 +63,6 @@ class RatingSerializer(serializers.ModelSerializer):
             article=obj.article).aggregate(Avg('user_rating'))
         return average_rating["user_rating__avg"]
 
-    def get_article(self, obj):
-        """Returns an article that matches the slug"""
-        return obj.article.slug
-
     class Meta:
         model = Rating
-        fields = ("article", "user_rating", "average_rating")
+        fields = ("article_slug", "user_rating", "average_rating")

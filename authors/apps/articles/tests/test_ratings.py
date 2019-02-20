@@ -50,7 +50,8 @@ class TestArticleRatings(BaseTest):
         response = self.client.get(self.rate_article_url(),
                                    HTTP_AUTHORIZATION=f'token {token}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["data"]["user_rating"], None)
+        self.assertEqual(response.data["data"]["user_rating"],
+                         "you have not rated this article")
 
     def test_get_rated_article(self):
         """Test getting ratings for a rated article."""
@@ -93,7 +94,7 @@ class TestArticleRatings(BaseTest):
         self.assertEqual(response.data["message"],
                          "Rating submitted sucessfully")
         self.assertDictEqual(response.data["data"], {
-            "article": "rate-this",
+            "article_slug": "rate-this",
             "user_rating": 3.0,
             "average_rating": 2.5
         })

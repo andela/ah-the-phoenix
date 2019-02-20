@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound
 from django.db.models import Avg
 
 from .serializers import ArticleSerializer, RatingSerializer
@@ -16,13 +16,11 @@ def get_article(slug):
 
     try:
         article = Article.objects.get(slug=slug)
-
-    except Exception:
-        return Response(
-            {"error": "Article not found"},
-            status=status.HTTP_404_NOT_FOUND
+        return article
+    except Article.DoesNotExist:
+        raise NotFound(
+            {"error": "Article not found"}
         )
-    return article
 
 
 class ArticleViewSet(viewsets.ViewSet):
@@ -106,17 +104,11 @@ class RatingAPIView(GenericAPIView):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    # renderer_classes = (RatingJsonRenderer,)
 
     def post(self, request, slug):
         """POST request to rate an article."""
         rating = request.data
         article = get_article(slug)
-
-        if not article:
-            raise ValidationError(
-                detail={'message': 'Article not found'}
-            )
 
         if request.user.id == article.author.id:
             return Response({
@@ -144,36 +136,38 @@ class RatingAPIView(GenericAPIView):
     def get(self, request, slug):
         """Get request for an article ratings."""
         rating = None
-        try:
-            article = Article.objects.get(slug=slug)
-        except Article.DoesNotExist:
-            return Response(
-                {"error": "Article not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        article = get_article(slug)
 
-            try:
-                rating = Rating.objects.get(user=request.user, article=article)
-            except Rating.DoesNotExist:
-                rating = None
+        try:
+            rating = Rating.objects.get(user=request.user, article=article)
+        except Exception:
+            rating = None
 
         if rating is None:
             avg = Rating.objects.filter(
-                article=article).aggregate(Avg('user_rating')
-                                           )
+                article=article).aggregate(Avg('user_rating'))
             average_rating = avg['user_rating__avg']
             if avg["user_rating__avg"] is None:
                 average_rating = 0
 
             if request.user.is_authenticated is False:
                 return Response({
-                    'article': article.slug,
+                    'article_slug': article.slug,
                     'average_rating': average_rating,
                     'user_rating': 'login to rate the article'
                 }, status=status.HTTP_200_OK)
 
-        serializer = self.serializer_class(rating)
+            return Response({
+                'message': 'article rating',
+                'data': {
+                    "article_slug": article.slug,
+                    'average_rating': average_rating,
+                    'user_rating': 'you have not rated this article'
+                }
+            }, status=status.HTTP_200_OK)
+
+        serialized_data = self.serializer_class(rating)
         return Response({
             'message': 'article rating',
-            'data': serializer.data
+            'data': serialized_data.data
         }, status=status.HTTP_200_OK)
