@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg
-from .models import Article, Rating
+from .models import Article, Rating, Comments
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -78,3 +78,72 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ("article_slug", "user_rating", "average_rating")
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """This is the serializer class for comments
+
+    body is a required input
+    """
+    author_id = serializers.SerializerMethodField()
+    article_id = serializers.SerializerMethodField()
+    body = serializers.CharField(
+        required=True,
+        max_length=250,
+        error_messages={
+            'required': 'The comment body cannot be empty',
+        }
+    )
+
+    def format_date(self, date):
+        return date.strftime('%d %b %Y %H:%M:%S')
+
+    def create_children(self, instance):
+        children = [
+            {
+                'id': thread.id,
+                'body': thread.body,
+                'author': thread.author.id,
+                'created_at': self.format_date(thread.created_at),
+                'updated_at': self.format_date(thread.updated_at)
+            } for thread in instance.children.all()
+        ]
+        return children
+
+    def to_representation(self, instance):
+        """For custom output"""
+
+        children = self.create_children(instance)
+
+        representation = super(CommentSerializer,
+                               self).to_representation(instance)
+        representation['created_at'] = self.format_date(instance.created_at)
+        representation['updated_at'] = self.format_date(instance.updated_at)
+        representation['author'] = instance.author.username
+        representation['article'] = instance.article.title
+        representation['reply_count'] = instance.children.count()
+        representation['children'] = children
+
+        return representation
+
+    class Meta:
+        model = Comments
+        fields = (
+            'id', 'article_id', 'body', 'author_id', 'created_at',
+            'updated_at', 'children'
+        )
+        read_only_fields = (
+            'id', 'created_at', 'updated_at', 'article_id',
+            'author_id', 'parent', 'children'
+        )
+
+    def get_author_id(self, obj):
+        """Return author username"""
+        return obj.author.id
+
+    def get_article_id(self, obj):
+        """Return article """
+        return obj.article.slug
+
+    def create(self, validated_data):
+        return Comments.objects.create(**validated_data)

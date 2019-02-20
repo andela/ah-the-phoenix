@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404
+from django.http import Http404
+
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
@@ -7,7 +9,8 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import NotFound
 from django.db.models import Avg
 
-from .serializers import ArticleSerializer, RatingSerializer
+from .serializers import ArticleSerializer, RatingSerializer, CommentSerializer
+from .models import Article, Comments
 from .renderers import ArticleJsonRenderer
 from .models import Article, Rating
 
@@ -215,3 +218,146 @@ class DisLikeViewSet(viewsets.ViewSet):
                                                'request': request},
                                            partial=True)
         return Response(serializer.data, status.HTTP_200_OK)
+                        status = status.HTTP_200_OK)
+
+
+class CommentViewSet(viewsets.ViewSet):
+    """Class to handle comments route'
+
+    One can post a comment, retrieve all, retrieve one, update,
+    delete comments
+    """
+    queryset=Comments.objects.all()
+    serializer_class=CommentSerializer
+    permission_classes=(IsAuthenticatedOrReadOnly,)
+    renderer_classes=(ArticleJsonRenderer,)
+
+    def get_specific_comment(self, article_id, comment_id, request):
+        """This methos a single comment related to a specific article"""
+        try:
+            Article.objects.get(pk = article_id)
+        except Exception:
+            return Response({"error": "Article does not exist"})
+        try:
+            comment=Comments.objects.filter(pk = comment_id,
+                                              article_id = article_id).first()
+        except Exception:
+            raise Http404("Data not found")
+
+        if not comment:
+            return Response({"error": "Comment does not exist"},
+                            status=status.HTTP_404_NOT_FOUND)
+        return comment
+
+    def list(self, request, **kwargs):
+        """This is the endpoint to view all article comments"""
+        article_id = self.kwargs['pk']
+        try:
+            Article.objects.get(pk=article_id)
+        except Exception:
+            return Response({"error": "Article does not exist"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            comments = Comments.objects.filter(article_id=article_id).order_by(
+                '-created_at')
+        except Exception:
+            return Response({"error": "No comments found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.serializer_class(comments, many=True)
+        return Response(
+            {
+                'Comments': serializer.data
+            }
+        )
+
+    def create(self, request, **kwargs):
+        """This is the view for creating a new comment"""
+        article_id = self.kwargs['pk']
+        try:
+            article = Article.objects.get(pk=article_id)
+        except Exception:
+            return Response({"error": "Article does not exist"},
+                            status=status.HTTP_404_NOT_FOUND)
+        comment = request.data
+        serializer = self.serializer_class(
+            data=comment, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(article=article, author=request.user)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, id, **kwargs):
+        """This is the view for updating a comment"""
+        article_id = self.kwargs['pk']
+        comment = self.get_specific_comment(
+            article_id, id, request
+        )
+        if isinstance(comment, Response):
+            return comment
+        serializer = self.serializer_class(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, id, **kwargs):
+        """This is the view for updating a comment"""
+        article_id = self.kwargs['pk']
+        comment = self.get_specific_comment(
+            article_id, id, request
+        )
+        if isinstance(comment, Response):
+            return comment
+        if comment.author.id != request.user.id:
+            return Response({
+                "error": "You are not the author of this comment"
+            },
+                status=status.HTTP_401_UNAUTHORIZED)
+        comment_data = request.data
+        serializer = self.serializer_class(
+            instance=comment, data=comment_data, partial=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, id, **kwargs):
+        """This is the view for deleting a comment"""
+        article_id = self.kwargs['pk']
+        comment = self.get_specific_comment(
+            article_id, id, request
+        )
+        if isinstance(comment, Response):
+            return comment
+        if comment.author.id != request.user.id:
+            return Response({
+                "error": "You are not the author of this comment"
+            },
+                status=status.HTTP_401_UNAUTHORIZED)
+        comment.delete()
+        return Response({
+            "message": "Comment deleted successfully"
+        },
+            status=status.HTTP_200_OK)
+
+    def create_reply(self, request, id, **kwargs):
+        """This is the view that handles creation of child comments"""
+        article_id = self.kwargs['pk']
+        comment = self.get_specific_comment(
+            article_id, id, request
+        )
+        if isinstance(comment, Response):
+            return comment
+        comment_data = request.data
+        article = Article.objects.get(pk=article_id)
+        serializer = self.serializer_class(
+            data=comment_data, context={'request': request}
+        )
+        if comment.parent:
+            return Response({
+                "error": "You cannot reply to this comment"
+            },
+                status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(article=article, author=request.user, parent=comment)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

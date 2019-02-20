@@ -196,6 +196,11 @@ class BaseTest(APITestCase):
             "title": "rate this",
             "description": "to be used in rating tests",
             "body": "whose afraid of the big bad wolf?"
+            }
+        self.test_article = {
+            "title": "this is andela",
+            "description": "andela is awesome",
+            "body": "lets be epic"
         }
 
         self.blank_title = {
@@ -319,6 +324,13 @@ class BaseTest(APITestCase):
                          HTTP_AUTHORIZATION=f'token {token}')
         rate_article_url = reverse("articles:rating", args=["rate-this"])
         return rate_article_url
+        # comments variables
+        self.comment = {
+            "body": "I am a comment"
+        }
+        self.blank_comment = {
+            "body": ""
+        }
 
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
@@ -335,17 +347,17 @@ class BaseTest(APITestCase):
                                 user_details,
                                 format='json')
 
-    def authenticate_user(self, user_auth):
+    def authenticate_user(self, data):
         """Invoke the server by sending a post request to the signup url."""
 
         self.client.post(self.signup_url,
-                         user_auth,
+                         data,
                          format='json')
-        user = User.objects.get(email=user_auth['user']['email'])
+        user = User.objects.get(email=data['user']['email'])
         user.is_verified = True
         user.save()
         response = self.client.post(self.login_url,
-                                    user_auth,
+                                    data,
                                     format='json')
         return response
 
