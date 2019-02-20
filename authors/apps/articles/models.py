@@ -4,8 +4,6 @@ from django.utils.text import slugify
 from authors.apps.authentication.models import User
 from cloudinary.models import CloudinaryField
 
-# Create your models here.
-
 
 class Article(models.Model):
     """Create models for the articles"""
@@ -41,3 +39,21 @@ class Article(models.Model):
         if not self.slug:
             self.slug = self.generate_slug()
         super().save(*args, **kwargs)
+
+
+class Rating(models.Model):
+    """The rating model"""
+    user = models.ForeignKey(
+        User,
+        related_name="rater",
+        on_delete=models.CASCADE
+    )
+    article = models.ForeignKey(
+        Article,
+        related_name="rated_article",
+        on_delete=models.CASCADE
+    )
+    user_rating = models.FloatField(default=0)
+
+    def __str__(self):
+        return self.user_rating

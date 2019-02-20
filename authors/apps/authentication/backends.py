@@ -33,8 +33,8 @@ class JWTAuthentication(authentication.BaseAuthentication):
         token = auth_header[1].decode('utf-8')
 
         if prefix.lower() != self.authentication_header_prefix:
-            message = "Invalid token header. Token header should"
-            " include the word `token` followed by a whitespace"
+            message = "Invalid token header. Token header should" \
+                " include the word `token` followed by a whitespace"
             raise exceptions.AuthenticationFailed(message)
 
         return self.authenticate_credentials(request, token)

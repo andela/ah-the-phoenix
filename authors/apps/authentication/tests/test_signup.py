@@ -118,7 +118,7 @@ class TestRegistration(BaseTest):
 
     def test_already_validated_email(self):
         """Test if user email can be verified when its already verified"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         verification_url = reverse(
             'authentication:verify_email', kwargs={'token': token})
 
@@ -177,7 +177,7 @@ class TestRegistration(BaseTest):
 
     def test_update_user(self):
         """Test for successful user registration."""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.put(self.user_url,
                                    self.user_data,
                                    HTTP_AUTHORIZATION=f'token {token}',

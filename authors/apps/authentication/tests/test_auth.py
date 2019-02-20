@@ -8,7 +8,7 @@ class TestGetUser(BaseTest):
     """Test for the login functionality of the app."""
 
     def test_get_users(self):
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.get(self.user_url,
                                    HTTP_AUTHORIZATION=f'token {token}'
                                    )
@@ -16,14 +16,14 @@ class TestGetUser(BaseTest):
         self.assertEqual(response.data["email"], "pherndegz@gmail.com")
 
     def test_wrong_token_header(self):
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.get(self.user_url,
                                    HTTP_AUTHORIZATION=f'token{token}'
                                    )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_too_many_arguments_in_header(self):
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.get(self.user_url,
                                    HTTP_AUTHORIZATION=f'token dd {token}'
                                    )

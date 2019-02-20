@@ -26,11 +26,32 @@ class BaseTest(APITestCase):
                 "username": "PaulGichuki"
             }
         }
+        self.auth_user2_data = {
+            "user": {
+                "email": "einstein@gmail.com",
+                "password": "WE12**msdd",
+                "username": "madgenius"
+            }
+        }
+        self.auth_user3_data = {
+            "user": {
+                "email": "neil@gmail.com",
+                "password": "WE12**msdd",
+                "username": "famescience"
+            }
+        }
         self.user_data = {
             "user": {
                 "username": "James",
                 "email": "wearethephoenix34@gmail.com",
                 "password": "jamesSavali1"
+            }
+        }
+        self.user2_data = {
+            "user": {
+                "username": "constantine",
+                "email": "emporer@gmail.com",
+                "password": "aC34##myndd"
             }
         }
 
@@ -171,6 +192,11 @@ class BaseTest(APITestCase):
             "description": "andela is awesome",
             "body": "lets be epic"
         }
+        self.rating_article = {
+            "title": "rate this",
+            "description": "to be used in rating tests",
+            "body": "whose afraid of the big bad wolf?"
+        }
 
         self.blank_title = {
             "title": "",
@@ -282,6 +308,18 @@ class BaseTest(APITestCase):
             }
         }
 
+        self.non_existant_article_url = reverse(
+            "articles:rating", args=["not-existing-article"])
+
+    def rate_article_url(self):
+        token = self.authenticate_user(self.auth_user2_data).data["token"]
+        self.client.post(self.articles_url,
+                         self.rating_article,
+                         format='json',
+                         HTTP_AUTHORIZATION=f'token {token}')
+        rate_article_url = reverse("articles:rating", args=["rate-this"])
+        return rate_article_url
+
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""
         return self.client.post(self.signup_url,
@@ -297,17 +335,17 @@ class BaseTest(APITestCase):
                                 user_details,
                                 format='json')
 
-    def authenticate_user(self):
+    def authenticate_user(self, user_auth):
         """Invoke the server by sending a post request to the signup url."""
 
         self.client.post(self.signup_url,
-                         self.auth_user_data,
+                         user_auth,
                          format='json')
-        user = User.objects.get(email=self.auth_user_data['user']['email'])
+        user = User.objects.get(email=user_auth['user']['email'])
         user.is_verified = True
         user.save()
         response = self.client.post(self.login_url,
-                                    self.auth_user_data,
+                                    user_auth,
                                     format='json')
         return response
 

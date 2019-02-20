@@ -1,13 +1,13 @@
-from rest_framework import status
-
 from authors.apps.authentication.tests.base_test import BaseTest
+
+from rest_framework import status
 
 
 class TestArticles(BaseTest):
     def test_create_article(self):
         """users should be able to create an article"""
 
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article,
                                     format='json',
@@ -19,7 +19,7 @@ class TestArticles(BaseTest):
     def test_add_blank_title(self):
         """user should not be allowed to create a blank title"""
 
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.blank_title,
                                     format='json',
@@ -31,7 +31,7 @@ class TestArticles(BaseTest):
     def test_add_blank_body(self):
         """user should not be allowed to create a blank body"""
 
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.blank_body,
                                     format='json',
@@ -42,7 +42,7 @@ class TestArticles(BaseTest):
 
     def test_get_articles_logged_in(self):
         """Registered users can view articles logged in"""
-        self.authenticate_user().data["token"]
+        self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.get(self.articles_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -53,7 +53,7 @@ class TestArticles(BaseTest):
 
     def test_get_single_article(self):
         """User can view a selected article"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
@@ -64,7 +64,7 @@ class TestArticles(BaseTest):
 
     def test_get_single_article_not_logged_in(self):
         """Unregistered user can view selected article"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
@@ -86,7 +86,7 @@ class TestArticles(BaseTest):
 
     def test_update_article(self):
         """user is able to update theoir article"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
@@ -100,7 +100,7 @@ class TestArticles(BaseTest):
 
     def test_partially_update_article(self):
         """user is able to update theoir article"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
@@ -116,7 +116,7 @@ class TestArticles(BaseTest):
     def test_update_article_unauthorized(self):
         """user is unable update their article without authorization"""
 
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
@@ -132,14 +132,13 @@ class TestArticles(BaseTest):
     def test_delete_article(self):
         """User is able to delete articles"""
 
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
         new_slug = response.data['slug']
         response2 = self.client.delete(self.articles_url + new_slug + '/',
                                        HTTP_AUTHORIZATION=f'token {token}')
-        self.assertEqual(response2.status_code, status.HTTP_200_OK)
         message = response2.data["message"]
         self.assertEqual(message,
                          "article deleted successfully")
@@ -147,7 +146,7 @@ class TestArticles(BaseTest):
     def test_delete_nonexistent_article(self):
         """User is not able to delete non-existent article"""
 
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.delete(self.articles_url +
                                       "no-article-with-slug/",
                                       format='json',
@@ -161,7 +160,7 @@ class TestArticles(BaseTest):
         """
         This method tests if a non owner can delete an article
         """
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.post(self.articles_url,
                                     self.article, format='json',
                                     HTTP_AUTHORIZATION=f'token {token}')
@@ -177,7 +176,7 @@ class TestArticles(BaseTest):
         """
         User cannot view an article that does not exist
         """
-        self.authenticate_user().data["token"]
+        self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.get(self.articles_url + "no-article-with-slug/",
                                    format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

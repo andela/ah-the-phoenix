@@ -9,5 +9,6 @@ urlpatterns = [
         {'get': 'list', "post": "create"}), name='articles-all'),
     path('articles/<pk>/', views.ArticleViewSet.as_view(
         {"get": "retrieve", "put": "update", "patch": "partial_update",
-         "delete": "destroy"}), name='single-article')
+         "delete": "destroy"}), name='single-article'),
+    path('rate/<slug>/', views.RatingAPIView.as_view(), name='rating')
 ]

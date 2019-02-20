@@ -11,7 +11,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_successful_follow(self):
         """Test whether API user can follow another successfully"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         test_id = self.create_test_user()
         response = self.follow_user(test_id, token)
         self.assertEqual(response.data['message'],
@@ -20,7 +20,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_follow_unavailable_user(self):
         """Test whether API user can follow an unavailable user"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.follow_user(377, token)
         self.assertEqual(response.data['error'],
                          "User not found")
@@ -28,8 +28,9 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_follow_yourself(self):
         """Test whether API user can follow oneself"""
-        token = self.authenticate_user().data["token"]
-        user = User.objects.get(email=self.authenticate_user().data["email"])
+        token = self.authenticate_user(self.auth_user_data).data["token"]
+        user = User.objects.get(email=self.authenticate_user(
+            self.auth_user_data).data["email"])
         response = self.follow_user(user.id, token)
         self.assertEqual(response.data['error'],
                          "You cannot follow yourself")
@@ -37,7 +38,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_follow_user_already_folowed(self):
         """Test whether API user can follow a user they already follow"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         test_id = self.create_test_user()
         self.follow_user(test_id, token)
         response = self.follow_user(test_id, token)
@@ -47,7 +48,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_successful_unfollow(self):
         """Test whether API user can unfollow a follower successfully"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         test_id = self.create_test_user()
         self.follow_user(test_id, token)
         response = self.unfollow_user(test_id, token)
@@ -57,7 +58,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_unfollow_unavailable_user(self):
         """Test whether API user can unfollow a follower successfully"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.unfollow_user(363, token)
         self.assertEqual(response.data['error'],
                          "User not found")
@@ -65,7 +66,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_unfollow_nonfollower(self):
         """Test whether API user can unfollow a user they don't follow"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         test_id = self.create_test_user()
         response = self.unfollow_user(test_id, token)
         self.assertEqual(response.data['error'],
@@ -74,7 +75,7 @@ class FollowUnfollowTestCase(BaseTest):
 
     def test_get_following(self):
         """Test whether API user can view follow list successfully"""
-        token = self.authenticate_user().data["token"]
+        token = self.authenticate_user(self.auth_user_data).data["token"]
         test_id = self.create_test_user()
         self.follow_user(test_id, token)
         response = self.get_following(test_id, token)
