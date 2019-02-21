@@ -39,6 +39,12 @@ class ArticleSerializer(serializers.ModelSerializer):
                   'liked_by', 'disliked_by', 'likes_count', 'dislikes_count',
                   'created_at', 'updated_at')
 
+    def get_likes_count(self, obj):
+        return obj.liked_by.count()
+
+    def get_dislikes_count(self, obj):
+        return obj.disliked_by.count()
+
 
 class RatingSerializer(serializers.ModelSerializer):
     """Serializers for the rating model"""
@@ -72,9 +78,3 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ("article_slug", "user_rating", "average_rating")
-
-    def get_likes_count(self, obj):
-        return obj.liked_by.count()
-
-    def get_dislikes_count(self, obj):
-        return obj.disliked_by.count()

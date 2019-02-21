@@ -17,31 +17,31 @@ class TestLikeDislikeCase(BaseTest):
 
     def test_like_non_existent_article(self):
         """Test liking of a non-existent article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         response = self.client.patch(BaseTest.likes_article_url('james-sav'),
                                      format='json',
                                      HTTP_AUTHORIZATION=f'Token {token}'
                                      )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(
-            "The article does not exist",
-            response.data['detail'])
+            "Article not found",
+            response.data['error'])
 
     def test_dislike_non_existent_article(self):
         """Test disliking of a non-existent article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         response = self.client.patch(BaseTest.dislikes_article_url('jame'),
                                      format='json',
                                      HTTP_AUTHORIZATION=f'Token {token}'
                                      )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(
-            "The article does not exist",
-            response.data['detail'])
+            "Article not found",
+            response.data['error'])
 
     def test_like_already_liked_article(self):
         """Test liking of an already liked article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         slug = self.create_article()
         self.client.patch(BaseTest.likes_article_url(slug),
                           format='json',
@@ -56,7 +56,7 @@ class TestLikeDislikeCase(BaseTest):
 
     def test_dislike_already_liked_article(self):
         """Test disliking of an already liked article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         slug = self.create_article()
         self.client.patch(BaseTest.likes_article_url(slug),
                           format='json',
@@ -72,7 +72,7 @@ class TestLikeDislikeCase(BaseTest):
 
     def test_dislike_already_disliked_article(self):
         """Test disliking of an already disliked article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         slug = self.create_article()
         self.client.patch(BaseTest.dislikes_article_url(slug),
                           format='json',

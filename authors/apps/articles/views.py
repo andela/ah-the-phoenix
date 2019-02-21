@@ -173,25 +173,28 @@ class RatingAPIView(GenericAPIView):
         }, status=status.HTTP_200_OK)
 
 
+def check_if_article_exists(request, pk, action):
+    article = get_article(pk)
+    if request.user in article.liked_by.all():
+        request.user.likes.remove(article)
+    else:
+        if action == 'like':
+            request.user.likes.add(article)
+    if request.user in article.disliked_by.all():
+        request.user.dislikes.remove(article)
+    else:
+        if action == 'dislike':
+            request.user.dislikes.add(article)
+    return article
+
+
 class LikeViewSet(viewsets.ViewSet):
     serializer_class = ArticleSerializer
     permissions = (IsAuthenticatedOrReadOnly,)
 
     def partial_update(self, request, pk=None):
         """Update likes field."""
-        try:
-            article = Article.objects.get(pk=pk)
-        except Exception:
-            raise NotFound("The article does not exist")
-        if article in Article.objects.filter(
-                disliked_by=request.user):
-            article.disliked_by.remove(request.user)
-        if article in Article.objects.filter(
-                liked_by=request.user):
-            article.liked_by.remove(request.user)
-        else:
-            article.liked_by.add(request.user)
-
+        article = check_if_article_exists(request, pk, 'like')
         serializer = self.serializer_class(article,
                                            context={
                                                'request': request},
@@ -205,18 +208,7 @@ class DisLikeViewSet(viewsets.ViewSet):
 
     def partial_update(self, request, pk=None):
         """Update dislikes field."""
-        try:
-            article = Article.objects.get(pk=pk)
-        except Exception:
-            raise NotFound("The article does not exist")
-        if article in Article.objects.filter(
-                liked_by=request.user):
-            article.liked_by.remove(request.user)
-        if article in Article.objects.filter(
-                disliked_by=request.user):
-            article.disliked_by.remove(request.user)
-        else:
-            article.disliked_by.add(request.user)
+        article = check_if_article_exists(request, pk, 'dislike')
 
         serializer = self.serializer_class(article,
                                            context={

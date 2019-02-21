@@ -450,7 +450,7 @@ class BaseTest(APITestCase):
 
     def create_article(self):
         """Create an article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         article = self.client.post(self.articles_url,
                                    self.article,
                                    format='json',
@@ -460,7 +460,7 @@ class BaseTest(APITestCase):
 
     def create_and_like_article(self):
         """Create and like an article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         article = self.client.post(self.articles_url,
                                    self.article,
                                    format='json',
@@ -473,7 +473,7 @@ class BaseTest(APITestCase):
 
     def create_and_dislike_article(self):
         """Create and dislike an article."""
-        token = self.authenticate_user().data['token']
+        token = self.authenticate_user(self.auth_user_data).data['token']
         article = self.client.post(self.articles_url,
                                    self.article,
                                    format='json',
