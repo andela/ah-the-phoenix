@@ -60,3 +60,42 @@ class Rating(models.Model):
 
     def __str__(self):
         return self.user_rating
+
+
+class Comment(models.Model):
+    """
+    This class creates a model for article comments
+
+    Comment must have an article_id, author_id and a body.
+    Some comments have parent comments to facilitate comment threading and
+    replies.
+    """
+    body = models.CharField(max_length=250, blank=False)
+    article = models.ForeignKey(
+        Article,
+        related_name='comments',
+        on_delete=models.CASCADE,
+        blank=False
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='comments',
+        on_delete=models.CASCADE,
+        blank=False
+    )
+    parent = models.ForeignKey(
+        'self',
+        related_name='children',
+        on_delete=models.CASCADE,
+        null=True,
+        default=None
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        """Return a human readable version of model objects"""
+        return self.body
+
+    def save(self, *args, **kwargs):
+        return super(Comment, self).save(*args, **kwargs)

@@ -15,4 +15,9 @@ urlpatterns = [
         {"patch": "partial_update"}), name='like_article'),
     path('articles/<pk>/dislike/', views.DisLikeViewSet.as_view(
         {"patch": "partial_update"}), name='dislike_article'),
+    path('articles/<pk>/comments/', views.CommentViewSet.as_view(
+        {'get': 'list', "post": "create"}), name='comments-all'),
+    path('articles/<pk>/comments/<id>/', views.CommentViewSet.as_view(
+        {'get': 'retrieve', "put": "update",
+         "delete": "destroy", "post": "create_reply"}), name='single-comment'),
 ]
