@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg
-from .models import Article, Rating, Comment
+from .models import Article, Rating, Comment, Favorite
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -147,3 +147,23 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Comment.objects.create(**validated_data)
+
+
+class FavoriteInputSerializer(serializers.ModelSerializer):
+    """Input serializer for favoriting an article."""
+
+    class Meta:
+        model = Favorite
+        fields = ('article', 'user')
+
+
+class FavoriteInfoSerializer(serializers.BaseSerializer):
+    """Serializer for the data to be rendered."""
+
+    def to_representation(self, obj):
+        return {
+            'article_slug': obj.article.slug,
+            'title': obj.article.title,
+            'description': obj.article.description,
+            'body': obj.article.body,
+        }
