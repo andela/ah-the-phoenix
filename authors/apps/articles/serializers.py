@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg
-from .models import Article, Rating, Comments
+from .models import Article, Rating, Comment
 
 
 class ArticleSerializer(serializers.ModelSerializer):

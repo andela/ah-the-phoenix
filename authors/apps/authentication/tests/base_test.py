@@ -196,7 +196,7 @@ class BaseTest(APITestCase):
             "title": "rate this",
             "description": "to be used in rating tests",
             "body": "whose afraid of the big bad wolf?"
-            }
+        }
         self.test_article = {
             "title": "this is andela",
             "description": "andela is awesome",
@@ -315,6 +315,13 @@ class BaseTest(APITestCase):
 
         self.non_existant_article_url = reverse(
             "articles:rating", args=["not-existing-article"])
+        # comments variables
+        self.comment = {
+            "body": "I am a comment"
+        }
+        self.blank_comment = {
+            "body": ""
+        }
 
     def rate_article_url(self):
         token = self.authenticate_user(self.auth_user2_data).data["token"]
@@ -324,13 +331,6 @@ class BaseTest(APITestCase):
                          HTTP_AUTHORIZATION=f'token {token}')
         rate_article_url = reverse("articles:rating", args=["rate-this"])
         return rate_article_url
-        # comments variables
-        self.comment = {
-            "body": "I am a comment"
-        }
-        self.blank_comment = {
-            "body": ""
-        }
 
     def signup_a_user(self, user_details):
         """Invoke the server by sending a post request to the signup url."""

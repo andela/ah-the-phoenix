@@ -60,7 +60,8 @@ class Rating(models.Model):
 
     def __str__(self):
         return self.user_rating
-class Comments(models.Model):
+
+
 class Comment(models.Model):
     """
     This class creates a model for article comments

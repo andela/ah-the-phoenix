@@ -1,18 +1,14 @@
-from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import NotFound
-
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework import viewsets
-from rest_framework.generics import GenericAPIView
-from rest_framework.exceptions import NotFound
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
+from rest_framework.exceptions import NotFound
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
 
-from .serializers import ArticleSerializer, RatingSerializer, CommentSerializer
-from .models import Article, Comment
+from .models import Article, Comment, Rating
 from .renderers import ArticleJsonRenderer
-from .models import Article, Rating
+from .serializers import ArticleSerializer, CommentSerializer, RatingSerializer
 
 
 def get_article(slug):
@@ -218,7 +214,6 @@ class DisLikeViewSet(viewsets.ViewSet):
                                                'request': request},
                                            partial=True)
         return Response(serializer.data, status.HTTP_200_OK)
-                        status = status.HTTP_200_OK)
 
 
 class CommentViewSet(viewsets.ViewSet):
@@ -234,10 +229,7 @@ class CommentViewSet(viewsets.ViewSet):
 
     def get_specific_comment(self, article_id, comment_id, request):
         """This methos a single comment related to a specific article"""
-        try:
-            Article.objects.get(pk=article_id)
-        except Exception:
-            return Response({"error": "Article does not exist"})
+        get_article(article_id)
         try:
             comment = Comment.objects.filter(pk=comment_id,
                                              article_id=article_id).first()
@@ -252,11 +244,7 @@ class CommentViewSet(viewsets.ViewSet):
     def list(self, request, **kwargs):
         """This is the endpoint to view all article comments"""
         article_id = self.kwargs['pk']
-        try:
-            Article.objects.get(pk=article_id)
-        except Exception:
-            return Response({"error": "Article does not exist"},
-                            status=status.HTTP_404_NOT_FOUND)
+        get_article(article_id)
 
         try:
             comments = Comment.objects.filter(article_id=article_id).order_by(
@@ -275,11 +263,8 @@ class CommentViewSet(viewsets.ViewSet):
     def create(self, request, **kwargs):
         """This is the view for creating a new comment"""
         article_id = self.kwargs['pk']
-        try:
-            article = Article.objects.get(pk=article_id)
-        except Exception:
-            return Response({"error": "Article does not exist"},
-                            status=status.HTTP_404_NOT_FOUND)
+        article = get_article(article_id)
+
         comment = request.data
         serializer = self.serializer_class(
             data=comment, context={'request': request}
