@@ -27,11 +27,23 @@ class ArticleSerializer(serializers.ModelSerializer):
             'required': 'the body cannot be empty'
         }
     )
+    liked_by = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    disliked_by = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
         fields = ('slug', 'title', 'description',
-                  'body', 'image', 'created_at', 'updated_at')
+                  'body', 'image',
+                  'liked_by', 'disliked_by', 'likes_count', 'dislikes_count',
+                  'created_at', 'updated_at')
+
+    def get_likes_count(self, obj):
+        return obj.liked_by.count()
+
+    def get_dislikes_count(self, obj):
+        return obj.disliked_by.count()
 
 
 class RatingSerializer(serializers.ModelSerializer):

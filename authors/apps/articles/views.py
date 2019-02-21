@@ -97,7 +97,7 @@ class ArticleViewSet(viewsets.ViewSet):
         article = get_object_or_404(queryset, pk=pk)
         article.delete()
         return Response({"message": "article deleted successfully"},
-                        status=status.HTTP_204_NO_CONTENT)
+                        status=status.HTTP_200_OK)
 
 
 class RatingAPIView(GenericAPIView):
@@ -171,3 +171,47 @@ class RatingAPIView(GenericAPIView):
             'message': 'article rating',
             'data': serialized_data.data
         }, status=status.HTTP_200_OK)
+
+
+def check_if_article_exists(request, pk, action):
+    article = get_article(pk)
+    if request.user in article.liked_by.all():
+        request.user.likes.remove(article)
+    else:
+        if action == 'like':
+            request.user.likes.add(article)
+    if request.user in article.disliked_by.all():
+        request.user.dislikes.remove(article)
+    else:
+        if action == 'dislike':
+            request.user.dislikes.add(article)
+    return article
+
+
+class LikeViewSet(viewsets.ViewSet):
+    serializer_class = ArticleSerializer
+    permissions = (IsAuthenticatedOrReadOnly,)
+
+    def partial_update(self, request, pk=None):
+        """Update likes field."""
+        article = check_if_article_exists(request, pk, 'like')
+        serializer = self.serializer_class(article,
+                                           context={
+                                               'request': request},
+                                           partial=True)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+
+class DisLikeViewSet(viewsets.ViewSet):
+    serializer_class = ArticleSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def partial_update(self, request, pk=None):
+        """Update dislikes field."""
+        article = check_if_article_exists(request, pk, 'dislike')
+
+        serializer = self.serializer_class(article,
+                                           context={
+                                               'request': request},
+                                           partial=True)
+        return Response(serializer.data, status.HTTP_200_OK)
