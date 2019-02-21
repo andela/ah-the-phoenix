@@ -19,6 +19,7 @@ class BaseTest(APITestCase):
         self.password_reset_url = reverse('authentication:reset_password')
         self.articles_url = reverse('articles:articles-all')
         self.profile_url = reverse('authentication:get_profiles')
+        self.favorites_url = reverse('articles:favorites')
         self.auth_user_data = {
             "user": {
                 "email": "pherndegz@gmail.com",
@@ -330,6 +331,16 @@ class BaseTest(APITestCase):
                          format='json',
                          HTTP_AUTHORIZATION=f'token {token}')
         rate_article_url = reverse("articles:rating", args=["rate-this"])
+        return rate_article_url
+
+    def favorite_article_url(self):
+        token = self.authenticate_user(self.auth_user2_data).data["token"]
+        self.client.post(self.articles_url,
+                         self.rating_article,
+                         format='json',
+                         HTTP_AUTHORIZATION=f'token {token}')
+        rate_article_url = reverse(
+            "articles:favorite_article", args=["rate-this"])
         return rate_article_url
 
     def signup_a_user(self, user_details):

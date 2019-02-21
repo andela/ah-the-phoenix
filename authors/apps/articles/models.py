@@ -99,3 +99,11 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         return super(Comment, self).save(*args, **kwargs)
+
+
+class Favorite(models.Model):
+    """Contains the user and article favorited."""
+    article = models.ForeignKey(
+        Article, related_name="favorited_article", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name="favoriter", on_delete=models.CASCADE)

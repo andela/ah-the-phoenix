@@ -5,10 +5,11 @@ from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-
-from .models import Article, Comment, Rating
-from .renderers import ArticleJsonRenderer
-from .serializers import ArticleSerializer, CommentSerializer, RatingSerializer
+from .models import Article, Comment, Rating, Favorite
+from .renderers import ArticleJsonRenderer, FavoriteJsonRenderer
+from .serializers import (
+    ArticleSerializer, CommentSerializer, RatingSerializer,
+    FavoriteInfoSerializer, FavoriteInputSerializer)
 
 
 def get_article(slug):
@@ -346,3 +347,45 @@ class CommentViewSet(viewsets.ViewSet):
         serializer.save(article=article, author=request.user, parent=comment)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class FavoriteViewSet(viewsets.ViewSet):
+    """Allows addition and removal of articles from favorites"""
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteInfoSerializer
+    renderer_classes = (FavoriteJsonRenderer,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def update(self, request, slug):
+        article_exists = Article.objects.filter(slug=slug).exists()
+        if not article_exists:
+            return({"error": "Article not found"}, status.HTTP_404_NOT_FOUND)
+        article = Article.objects.get(slug=slug)
+        favorite_existence = Favorite.objects.filter(
+            article=article.pk, user=request.user.id).exists()
+        if favorite_existence:
+            return Response(
+                {'error': 'you have already favorited this article'},
+                status.HTTP_400_BAD_REQUEST)
+        data = {"article": article.pk, "user": self.request.user.id}
+        serializer = FavoriteInputSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'article added to favorites'},
+                        status.HTTP_201_CREATED)
+
+    def destroy(self, request, slug):
+        article = get_article(slug)
+        instance = Favorite.objects.filter(
+            article=article.pk, user=request.user)
+        if instance.exists():
+            instance.delete()
+            return Response({'message': 'article removed from favorites'},
+                            status.HTTP_200_OK)
+        return Response({'message': 'article not in favorites'},
+                        status.HTTP_404_NOT_FOUND)
+
+    def list(self, request):
+        queryset = Favorite.objects.filter(user=request.user)
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

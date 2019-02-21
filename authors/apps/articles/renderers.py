@@ -24,3 +24,25 @@ class ArticleJsonRenderer(renderers.BaseRenderer):
                 return json.dumps({'message': data})
 
             return json.dumps({'article': data})
+
+
+class FavoriteJsonRenderer(renderers.BaseRenderer):
+    """
+    Renders a list of article favorites
+    """
+    media_type = 'application/json'
+    format = 'json'
+    charset = 'utf-8'
+
+    def render(self, data, accepted_media_type=None,
+               renderer_context=None):
+        """
+        Render a list of article favorites
+        """
+        if isinstance(data, list):
+            return json.dumps(
+                {'favorites': data})
+        if "error" in data:
+            return json.dumps({'message': data})
+
+        return json.dumps(data)

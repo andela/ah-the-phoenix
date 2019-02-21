@@ -6,7 +6,7 @@ from rest_framework import status
 class TestArticleRatings(BaseTest):
     """Tests for rating an article."""
     def rate_an_article(self, user, rating):
-        """Test a """
+        """Rates an existing article."""
         token = self.authenticate_user(user).data["token"]
         article_url = self.rate_article_url()
         response = self.client.post(article_url,

@@ -20,4 +20,9 @@ urlpatterns = [
     path('articles/<pk>/comments/<id>/', views.CommentViewSet.as_view(
         {'get': 'retrieve', "put": "update",
          "delete": "destroy", "post": "create_reply"}), name='single-comment'),
+    path('favorites/', views.FavoriteViewSet.as_view({"get": "list"}),
+         name='favorites'),
+    path('articles/<slug>/favorite',
+         views.FavoriteViewSet.as_view({
+             "put": "update", "delete": "destroy"}), name="favorite_article"),
 ]
