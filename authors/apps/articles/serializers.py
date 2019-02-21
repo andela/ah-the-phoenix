@@ -127,7 +127,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return representation
 
     class Meta:
-        model = Comments
+        model = Comment
         fields = (
             'id', 'article_id', 'body', 'author_id', 'created_at',
             'updated_at', 'children'
@@ -146,4 +146,4 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.article.slug
 
     def create(self, validated_data):
-        return Comments.objects.create(**validated_data)
+        return Comment.objects.create(**validated_data)

@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.http import Http404
+from rest_framework.exceptions import NotFound
 
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound
 from django.db.models import Avg
 
 from .serializers import ArticleSerializer, RatingSerializer, CommentSerializer
-from .models import Article, Comments
+from .models import Article, Comment
 from .renderers import ArticleJsonRenderer
 from .models import Article, Rating
 
@@ -227,22 +227,22 @@ class CommentViewSet(viewsets.ViewSet):
     One can post a comment, retrieve all, retrieve one, update,
     delete comments
     """
-    queryset=Comments.objects.all()
-    serializer_class=CommentSerializer
-    permission_classes=(IsAuthenticatedOrReadOnly,)
-    renderer_classes=(ArticleJsonRenderer,)
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    renderer_classes = (ArticleJsonRenderer,)
 
     def get_specific_comment(self, article_id, comment_id, request):
         """This methos a single comment related to a specific article"""
         try:
-            Article.objects.get(pk = article_id)
+            Article.objects.get(pk=article_id)
         except Exception:
             return Response({"error": "Article does not exist"})
         try:
-            comment=Comments.objects.filter(pk = comment_id,
-                                              article_id = article_id).first()
+            comment = Comment.objects.filter(pk=comment_id,
+                                             article_id=article_id).first()
         except Exception:
-            raise Http404("Data not found")
+            raise NotFound("Error when retrieving comment")
 
         if not comment:
             return Response({"error": "Comment does not exist"},
@@ -259,7 +259,7 @@ class CommentViewSet(viewsets.ViewSet):
                             status=status.HTTP_404_NOT_FOUND)
 
         try:
-            comments = Comments.objects.filter(article_id=article_id).order_by(
+            comments = Comment.objects.filter(article_id=article_id).order_by(
                 '-created_at')
         except Exception:
             return Response({"error": "No comments found"},

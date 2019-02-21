@@ -61,6 +61,7 @@ class Rating(models.Model):
     def __str__(self):
         return self.user_rating
 class Comments(models.Model):
+class Comment(models.Model):
     """
     This class creates a model for article comments
 
@@ -96,4 +97,4 @@ class Comments(models.Model):
         return self.body
 
     def save(self, *args, **kwargs):
-        return super(Comments, self).save(*args, **kwargs)
+        return super(Comment, self).save(*args, **kwargs)
