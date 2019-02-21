@@ -33,6 +33,7 @@ class TestFavoriteArticle(BaseTest):
         response = self.client.delete(
             self.favorite_article_url(), HTTP_AUTHORIZATION=f'token {token}'
         )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(
             response.data, {"message": "article not in favorites"})
 

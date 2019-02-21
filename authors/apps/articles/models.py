@@ -103,5 +103,7 @@ class Comment(models.Model):
 
 class Favorite(models.Model):
     """Contains the user and article favorited."""
-    article = models.ForeignKey(Article, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(
+        Article, related_name="favorited_article", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name="favoriter", on_delete=models.CASCADE)
