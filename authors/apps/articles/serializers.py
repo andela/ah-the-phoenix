@@ -103,7 +103,7 @@ class CommentSerializer(serializers.ModelSerializer):
             {
                 'id': thread.id,
                 'body': thread.body,
-                'author': thread.author.id,
+                'author': thread.author.username,
                 'created_at': self.format_date(thread.created_at),
                 'updated_at': self.format_date(thread.updated_at)
             } for thread in instance.children.all()

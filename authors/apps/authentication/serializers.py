@@ -281,3 +281,9 @@ class ProfilesSerializer(serializers.ModelSerializer):
         fields = ('username', 'bio', 'image',
                   'created_at', 'updated_at')
         read_only_fields = ('username', 'created_at', 'updated_at',)
+
+
+class SubscriptionSerializer(serializers.Serializer):
+
+    def validate(self, validated_data):
+        return False

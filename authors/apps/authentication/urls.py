@@ -3,7 +3,9 @@ from .views import (
     LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView,
     PasswordResetView, PasswordUpdateView, VerifyAPIView,
     SocialAuthenticationView, FollowUnfollowAPIView, FollowerFollowingAPIView,
-    ProfileRetrieveUpdateAPIView, ProfileGetAPIView
+    ProfileRetrieveUpdateAPIView, ProfileGetAPIView, SubscribeAPIView,
+    UnsubscribeAPIView
+
 )
 
 urlpatterns = [
@@ -23,5 +25,10 @@ urlpatterns = [
          FollowerFollowingAPIView.as_view(), name="following"),
     path('profiles/', ProfileGetAPIView.as_view(), name='get_profiles'),
     path('profiles/<pk>/',
-         ProfileRetrieveUpdateAPIView.as_view(), name='user_profile')
+         ProfileRetrieveUpdateAPIView.as_view(), name='user_profile'),
+    path('users/subscribe/',
+         SubscribeAPIView.as_view(), name='subscribe'),
+    path('users/unsubscribe/<uuid>/',
+         UnsubscribeAPIView.as_view(), name='unsubscribe')
+
 ]

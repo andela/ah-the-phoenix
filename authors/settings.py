@@ -43,11 +43,14 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'social_django',
     'cloudinary',
+    'notifications',
+
 
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.base',
-    'authors.apps.articles'
+    'authors.apps.articles',
+    'authors.apps.notify'
 ]
 
 MIDDLEWARE = [

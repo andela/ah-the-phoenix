@@ -20,6 +20,8 @@ class BaseTest(APITestCase):
         self.articles_url = reverse('articles:articles-all')
         self.profile_url = reverse('authentication:get_profiles')
         self.favorites_url = reverse('articles:favorites')
+        self.notification_url = reverse('notify:notifications')
+        self.subscribe_url = reverse('authentication:subscribe')
         self.auth_user_data = {
             "user": {
                 "email": "pherndegz@gmail.com",

@@ -1,4 +1,5 @@
 from authors.apps.authentication.tests.base_test import BaseTest
+from authors.apps.authentication.models import User
 
 from rest_framework import status
 
@@ -183,3 +184,33 @@ class TestArticles(BaseTest):
         message = response.data["detail"]
         self.assertEqual(message,
                          "Not found.")
+
+    def test_get_all_notifications(self):
+        """User is able to view all notifications"""
+
+        token = self.authenticate_user(self.auth_user_data).data["token"]
+        response = self.client.get(self.notification_url,
+                                   format='json',
+                                   HTTP_AUTHORIZATION=f'token {token}')
+        self.assertIsInstance(response.data, list)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_single_notification(self):
+        """User is able to view a single notification"""
+        token1 = self.authenticate_user(self.auth_user_data).data["token"]
+        test_user = self.authenticate_user(self.user_data)
+        token2 = test_user.data['token']
+        user = User.objects.get(email=self.auth_user_data['user']['email'])
+        response = self.follow_user(user.id, token2)
+        self.client.post(self.articles_url,
+                         self.article,
+                         format='json',
+                         HTTP_AUTHORIZATION=f'token {token1}')
+        response = self.client.get(self.notification_url,
+                                   format='json',
+                                   HTTP_AUTHORIZATION=f'token {token2}')
+        not_id = response.data[0]['id']
+        response2 = self.client.get(self.notification_url + f'{not_id}' + '/',
+                                    format='json',
+                                    HTTP_AUTHORIZATION=f'token {token2}')
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)

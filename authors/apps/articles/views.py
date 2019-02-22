@@ -72,7 +72,7 @@ class ArticleViewSet(viewsets.ViewSet):
 
         if serializer.is_valid():
             self.check_object_permissions(request, article)
-            serializer.save()
+            serializer.save(author=request.user)
             return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -248,7 +248,8 @@ class CommentViewSet(viewsets.ViewSet):
         get_article(article_id)
 
         try:
-            comments = Comment.objects.filter(article_id=article_id).order_by(
+            comments = Comment.objects.filter(article_id=article_id,
+                                              parent=None).order_by(
                 '-created_at')
         except Exception:
             return Response({"error": "No comments found"},
