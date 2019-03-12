@@ -194,8 +194,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'bio', 'image', 'followers_total',
-                  'following_total',  )
+        fields = ('email', 'username', 'password', 'bio', 'image',
+                  'followers_total', 'following_total',)
 
     def get_followers_total(self, obj):
         """Returns total number of followers"""
