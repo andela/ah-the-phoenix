@@ -189,9 +189,21 @@ class UserSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
+    followers_total = serializers.SerializerMethodField()
+    following_total = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'bio', 'image')
+        fields = ('email', 'username', 'password', 'bio', 'image',
+                  'followers_total', 'following_total',)
+
+    def get_followers_total(self, obj):
+        """Returns total number of followers"""
+        return obj.followers.count()
+
+    def get_following_total(self, obj):
+        """Returns number of users one is following"""
+        return obj.following.count()
 
         # The `read_only_fields` option is an alternative for explicitly
         # specifying the field with `read_only=True` like we did for password
