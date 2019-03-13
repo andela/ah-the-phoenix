@@ -63,15 +63,14 @@ class RegistrationAPIView(APIView):
         token = jwt.encode(payload, settings.SECRET_KEY,
                            algorithm='HS256').decode('utf-8')
         sender = os.getenv('EMAIL_HOST_USER')
-        site_link = get_current_site(request)
-        verification_link = 'http://' + site_link.domain + \
-            f'/api/v1/users/verify/{token}'
+        link = "https://the-phoenix-frontend-staging.herokuapp.com/" + \
+            f"verify/{token}"
 
         email_subject = "Author's Haven Email verification"
         message = render_to_string('verification_template.html', {
             'title': email_subject,
             'username': username,
-            'verification_link': verification_link
+            'verification_link': link
         })
 
         send_mail(email_subject, '', sender, [email, ], html_message=message)
