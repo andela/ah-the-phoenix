@@ -1,5 +1,4 @@
 import os
-from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 
@@ -14,7 +13,6 @@ class MailSender:
         """Recieve the user's request and sends back a response"""
         title = "Authors Heaven.Password reset"
         mail_sender = os.getenv('MAIL_SENDER')
-        url = get_current_site(request)
         full_mail = render_to_string(
             'verify_mail.html',
             {
@@ -22,8 +20,8 @@ class MailSender:
                            ' password reset request for your account',
                 'title': title,
                 'username': User.objects.get(email=recipient).get_short_name(),
-                'verification_link': "http://" + url.domain +
-                                     '/api/v1/users/password_update/' +
+                'verification_link': "https://the-phoenix-frontend-staging.herokuapp.com" +      # noqa 501
+                                     "/update-password/" +
                                      token.decode(),
             })
         send_mail(title, full_mail, mail_sender, [
