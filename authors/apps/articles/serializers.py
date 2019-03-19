@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg
 from .models import Article, Rating, Comment, Favorite
+from authors.apps.authentication.serializers import UserSerializer
+from authors.apps.authentication.models import User
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -31,13 +33,20 @@ class ArticleSerializer(serializers.ModelSerializer):
     disliked_by = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
     dislikes_count = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField(read_only=True)
+
+    def get_author(self, obj):
+        """This method gets the profile object for the article"""
+        serializer = UserSerializer(
+            instance=User.objects.get(username=obj.author))
+        return serializer.data
 
     class Meta:
         model = Article
         fields = ('slug', 'title', 'description',
                   'body', 'image',
                   'liked_by', 'disliked_by', 'likes_count', 'dislikes_count',
-                  'created_at', 'updated_at')
+                  'created_at', 'updated_at', 'author')
 
     def get_likes_count(self, obj):
         return obj.liked_by.count()
