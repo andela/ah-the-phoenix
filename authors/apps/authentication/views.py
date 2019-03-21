@@ -277,6 +277,7 @@ class SocialAuthenticationView(CreateAPIView):
             username = authenticated_user.username
             token = authenticated_user.token
             user_data = {
+                "user_id": authenticated_user.id,
                 "username": username,
                 "email": email,
                 "token": token
