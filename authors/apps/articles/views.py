@@ -38,7 +38,8 @@ class ArticleViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = Article.objects.all()
-        serializer = ArticleSerializer(queryset, many=True)
+        serializer = ArticleSerializer(
+            queryset, many=True, context={'request': request})
         return Response({"Articles": serializer.data})
 
     def create(self, request):
@@ -57,7 +58,7 @@ class ArticleViewSet(viewsets.ViewSet):
         """
         queryset = Article.objects.all()
         article = get_object_or_404(queryset, pk=pk)
-        serializer = ArticleSerializer(article)
+        serializer = ArticleSerializer(article, context={'request': request})
         return Response(serializer.data)
 
     def update(self, request, pk=None):
@@ -68,7 +69,7 @@ class ArticleViewSet(viewsets.ViewSet):
         article = get_object_or_404(queryset, pk=pk)
         article_data = request.data.get('article', {})
         serializer = self.serializer_class(
-            data=article_data, partial=False)
+            data=article_data, partial=False, context={'request': request})
 
         if serializer.is_valid():
             self.check_object_permissions(request, article)
@@ -82,7 +83,8 @@ class ArticleViewSet(viewsets.ViewSet):
         article = get_object_or_404(queryset, pk=pk)
         article_data = request.data
         serializer = self.serializer_class(
-            instance=article, data=article_data, partial=True)
+            instance=article, data=article_data, partial=True,
+            context={'request': request})
         if serializer.is_valid():
             self.check_object_permissions(request, article)
 

@@ -21,7 +21,8 @@ class NotificationViewList(APIView):
 
         serializer = self.serializer_class(
             queryset,
-            many=True
+            many=True,
+            context={'request': request}
         )
         serializer.data
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -49,7 +50,8 @@ class SingleNotification(APIView):
 
         serializer = self.serializer_class(
             notification,
-            many=False
+            many=False,
+            context={'request': request}
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)

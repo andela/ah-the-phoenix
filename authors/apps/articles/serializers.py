@@ -33,6 +33,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     disliked_by = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
     dislikes_count = serializers.SerializerMethodField()
+    like_status = serializers.SerializerMethodField(read_only=True)
+    dislike_status = serializers.SerializerMethodField(read_only=True)
     author = serializers.SerializerMethodField(read_only=True)
 
     def get_author(self, obj):
@@ -46,6 +48,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = ('slug', 'title', 'description',
                   'body', 'image',
                   'liked_by', 'disliked_by', 'likes_count', 'dislikes_count',
+                  'like_status', 'dislike_status',
                   'created_at', 'updated_at', 'author')
 
     def get_likes_count(self, obj):
@@ -53,6 +56,20 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def get_dislikes_count(self, obj):
         return obj.disliked_by.count()
+
+    def get_like_status(self, obj):
+        user = self.context['request'].user
+        likes = obj.liked_by.filter(pk=user.id)
+        if len(likes) > 0:
+            return True
+        return False
+
+    def get_dislike_status(self, obj):
+        user = self.context['request'].user
+        dislikes = obj.disliked_by.filter(pk=user.id)
+        if len(dislikes) > 0:
+            return True
+        return False
 
 
 class RatingSerializer(serializers.ModelSerializer):
