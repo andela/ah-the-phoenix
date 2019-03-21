@@ -173,6 +173,7 @@ class FavoriteInfoSerializer(serializers.BaseSerializer):
         return {
             'article_slug': obj.article.slug,
             'title': obj.article.title,
+            'image': obj.article.image,
             'description': obj.article.description,
             'body': obj.article.body,
         }
