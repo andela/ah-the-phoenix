@@ -5,6 +5,7 @@ from rest_framework import status
 
 class TestFavoriteArticle(BaseTest):
     """Tests for favoriting articles."""
+
     def favorite_article(self, user):
         """Favorites an existing article."""
         token = self.authenticate_user(user).data["token"]
@@ -58,12 +59,13 @@ class TestFavoriteArticle(BaseTest):
         self.favorite_article(self.auth_user_data)
         token = self.authenticate_user(self.auth_user_data).data["token"]
         response = self.client.get(
-           self.favorites_url, HTTP_AUTHORIZATION=f'token {token}'
+            self.favorites_url, HTTP_AUTHORIZATION=f'token {token}'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [{
             'article_slug': 'rate-this',
             'title': 'rate this',
+            'image': None,
             'description': 'to be used in rating tests',
             'body': 'whose afraid of the big bad wolf?'
-            }])
+        }])
