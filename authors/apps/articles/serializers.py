@@ -186,11 +186,18 @@ class FavoriteInputSerializer(serializers.ModelSerializer):
 class FavoriteInfoSerializer(serializers.BaseSerializer):
     """Serializer for the data to be rendered."""
 
+    def get_author(self, obj):
+        """This method gets the profile object for the article"""
+        serializer = UserSerializer(
+            instance=User.objects.get(username=obj.user))
+        return serializer.data
+
     def to_representation(self, obj):
         return {
-            'article_slug': obj.article.slug,
+            'slug': obj.article.slug,
             'title': obj.article.title,
             'image': obj.article.image,
             'description': obj.article.description,
             'body': obj.article.body,
+            'author': self.get_author(obj)
         }
