@@ -273,6 +273,8 @@ class SocialAuthenticationView(CreateAPIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         if authenticated_user and authenticated_user.is_active:
+            authenticated_user.is_verified = True
+            authenticated_user.save()
             email = authenticated_user.email
             username = authenticated_user.username
             token = authenticated_user.token
@@ -303,7 +305,6 @@ class FollowUnfollowAPIView(generics.RetrieveUpdateDestroyAPIView):
             return Response({
                 'error': "User not found"
             }, status=status.HTTP_404_NOT_FOUND)
-
         if not to_be_followed.is_verified:
             return Response({
                 'error': "User not verified"

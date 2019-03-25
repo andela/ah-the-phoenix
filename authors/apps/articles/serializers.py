@@ -192,6 +192,9 @@ class FavoriteInfoSerializer(serializers.BaseSerializer):
             instance=User.objects.get(username=obj.user))
         return serializer.data
 
+    def format_date(self, date):
+        return date.strftime('%d %b %Y %H:%M:%S')
+
     def to_representation(self, obj):
         return {
             'slug': obj.article.slug,
@@ -199,5 +202,6 @@ class FavoriteInfoSerializer(serializers.BaseSerializer):
             'image': obj.article.image,
             'description': obj.article.description,
             'body': obj.article.body,
-            'author': self.get_author(obj)
+            'author': self.get_author(obj),
+            'created_at': self.format_date(obj.article.created_at)
         }
