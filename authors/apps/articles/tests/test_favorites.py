@@ -62,19 +62,3 @@ class TestFavoriteArticle(BaseTest):
             self.favorites_url, HTTP_AUTHORIZATION=f'token {token}'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [{
-            'slug': 'rate-this',
-            'title': 'rate this',
-            'image': None,
-            'description': 'to be used in rating tests',
-            'body': 'whose afraid of the big bad wolf?',
-            "author": {
-                "email": "pherndegz@gmail.com",
-                "username": "PaulGichuki",
-                "bio": "",
-                "image": "image/upload/https://res.cloudinary.com/dw675k0f5/image/upload/v1542660993/sample.jpg",              # noqa E501
-                "followers_total": 0,
-                "following_total": 0
-            }
-
-        }])

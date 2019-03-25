@@ -195,7 +195,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'bio', 'image',
+        fields = ('id', 'email', 'username', 'password', 'bio', 'image',
+                  'followers', 'following',
                   'followers_total', 'following_total',)
 
     def get_followers_total(self, obj):
@@ -288,12 +289,23 @@ class ProfilesSerializer(serializers.ModelSerializer):
     username = serializers.CharField(read_only=True)
     bio = serializers.CharField(allow_blank=True, required=False)
     image = serializers.ImageField(default=None)
+    followers_total = serializers.SerializerMethodField()
+    following_total = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('username', 'bio', 'image',
-                  'created_at', 'updated_at')
+        fields = ('id', 'username', 'bio', 'image', 'is_verified',
+                  'created_at', 'updated_at', 'followers', 'following',
+                  'followers_total', 'following_total')
         read_only_fields = ('username', 'created_at', 'updated_at',)
+
+    def get_followers_total(self, obj):
+        """Returns total number of followers"""
+        return obj.followers.count()
+
+    def get_following_total(self, obj):
+        """Returns number of users one is following"""
+        return obj.following.count()
 
 
 class SubscriptionSerializer(serializers.Serializer):
