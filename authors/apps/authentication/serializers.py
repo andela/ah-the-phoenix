@@ -291,12 +291,14 @@ class ProfilesSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(default=None)
     followers_total = serializers.SerializerMethodField()
     following_total = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+    following = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ('id', 'username', 'bio', 'image', 'is_verified',
                   'created_at', 'updated_at', 'followers', 'following',
-                  'followers_total', 'following_total')
+                  'followers_total', 'following_total', 'get_notifications')
         read_only_fields = ('username', 'created_at', 'updated_at',)
 
     def get_followers_total(self, obj):
@@ -306,6 +308,28 @@ class ProfilesSerializer(serializers.ModelSerializer):
     def get_following_total(self, obj):
         """Returns number of users one is following"""
         return obj.following.count()
+
+    def get_followers(self, obj):
+        followers = []
+        for follower in obj.followers.all():
+            new_follower = {
+                "user_id": follower.id,
+                "username": follower.username,
+                "image": follower.image.url
+            }
+            followers.append(new_follower)
+        return followers
+
+    def get_following(self, obj):
+        followingList = []
+        for following in obj.following.all():
+            new_following = {
+                "user_id": following.id,
+                "username": following.username,
+                "image": following.image.url
+            }
+            followingList.append(new_following)
+        return followingList
 
 
 class SubscriptionSerializer(serializers.Serializer):
