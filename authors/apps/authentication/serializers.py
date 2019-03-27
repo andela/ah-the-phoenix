@@ -296,7 +296,7 @@ class ProfilesSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'bio', 'image', 'is_verified',
                   'created_at', 'updated_at', 'followers', 'following',
-                  'followers_total', 'following_total')
+                  'followers_total', 'following_total', 'get_notifications')
         read_only_fields = ('username', 'created_at', 'updated_at',)
 
     def get_followers_total(self, obj):
