@@ -196,10 +196,12 @@ class FavoriteInfoSerializer(serializers.BaseSerializer):
         return date.strftime('%d %b %Y %H:%M:%S')
 
     def to_representation(self, obj):
+        img = obj.article.image
+        image = img.url if img else img
         return {
             'slug': obj.article.slug,
             'title': obj.article.title,
-            'image': obj.article.image,
+            'image': image,
             'description': obj.article.description,
             'body': obj.article.body,
             'author': self.get_author(obj),
