@@ -197,7 +197,7 @@ class FavoriteInfoSerializer(serializers.BaseSerializer):
 
     def to_representation(self, obj):
         img = obj.article.image
-        image = img.url if img else img
+        image = img.__dict__ if img else img
         return {
             'slug': obj.article.slug,
             'title': obj.article.title,
