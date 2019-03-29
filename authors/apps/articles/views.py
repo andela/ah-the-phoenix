@@ -37,7 +37,7 @@ class ArticleViewSet(viewsets.ViewSet):
     renderer_classes = (ArticleJsonRenderer,)
 
     def list(self, request):
-        queryset = Article.objects.all()
+        queryset = Article.objects.order_by("-created_at")
         serializer = ArticleSerializer(
             queryset, many=True, context={'request': request})
         return Response({"Articles": serializer.data})
