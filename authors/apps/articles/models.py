@@ -131,7 +131,7 @@ def send_notifications_to_all_users(sender,
     if instance and created:
         users_followers = instance.author.followers.all()
 
-        link = f"""{os.getenv("HEROKU_BACKEND_URL")}/api/v1/articles/\n"""
+        link = f"""{os.getenv("HEROKU_BACKEND_URL")}/articles/\n"""
         f"""{instance.slug}"""
         for user in users_followers:
             if user.get_notifications:
